@@ -5,5 +5,5 @@ export default async function getSession() {
     method: 'GET',
   })
 
-  return session.json()
+  return session?.json()
 }
