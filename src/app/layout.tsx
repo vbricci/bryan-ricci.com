@@ -24,7 +24,8 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await getSession()
+  const host = process.env.API_HOST
+  const session = await getSession(host)
   return (
     <html lang="en" suppressHydrationWarning>
       <body

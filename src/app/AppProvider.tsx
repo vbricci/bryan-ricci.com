@@ -5,7 +5,7 @@ import App from "@/app/App";
 import { ISession } from "@/types";
 import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
 export interface IAppProviderProps {
-  session: ISession
+  session?: ISession
   children: React.ReactNode;
 }
 
