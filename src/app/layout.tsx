@@ -3,8 +3,6 @@ import { Geist, Geist_Mono } from "next/font/google";
 import getSession from "../lib/getSession"
 import AppProvider from "./AppProvider";
 import React, { Suspense } from "react";
-export const dynamic = 'force-dynamic';
-
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
