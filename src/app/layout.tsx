@@ -38,10 +38,8 @@ export default async function RootLayout({
 }>) {
 
   // Fetch session data on the server side
-  const apiHost = process.env.API_HOST
-  if (!apiHost) return <Body><div>API_HOST is not set</div></Body>
-  
-  const session = await getSession(apiHost)
+  const apiHost = process.env.API_HOST  
+  const session = await getSession(apiHost || '')
   return (
     <html lang="en" suppressHydrationWarning>
       <body

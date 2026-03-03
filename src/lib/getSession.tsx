@@ -1,5 +1,5 @@
 import { ISession } from '@/types'
-import { notFound } from 'next/navigation'
+// import { notFound } from 'next/navigation'
 
 import 'server-only'
 
@@ -9,9 +9,9 @@ export default async function getSession(apiHost: string): Promise<ISession | un
     method: 'GET',
   })
 
-  if (!session.ok) {
-    notFound()
-  }
+  // if (!session.ok) {
+  //   notFound()
+  // }
 
   return session.json()
 }
