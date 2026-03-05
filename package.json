@@ -13,12 +13,13 @@
   "dependencies": {
     "@chakra-ui/react": "^3.33.0",
     "@emotion/react": "^11.14.0",
-    "@vrobots/storybook": "^0.1.44",
+    "@vrobots/storybook": "^0.1.49",
     "axios": "^1.13.6",
     "motion": "^12.34.3",
     "next": "16.1.6",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "react-hook-form": "^7.71.2"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^5.0.1",

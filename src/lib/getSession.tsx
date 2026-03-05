@@ -5,10 +5,11 @@ import axios from 'axios';
 
 import 'server-only'
 
-export const createAxiosHeaders = (userAgent: string, session?: ISession) => {
+const createAxiosHeaders = (userAgent: string, session?: ISession) => {
   axios.interceptors.request.use((request) => {
+    const authorizationHeader = session ? `Bearer ${session._id}` : ''
     request.headers['User-Agent'] = userAgent
-    request.headers['Authorization'] = session?.token ? `Bearer ${session.token}` : ''
+    request.headers['Authorization'] = authorizationHeader
     return request
   }, function (error) {
     return Promise.reject(error);

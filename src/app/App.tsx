@@ -1,7 +1,7 @@
 'use client'
 import config from "../config";
-import { ColorModeProvider, Frame, HeaderProvider, SidebarProvider, useIsMobile } from "@vrobots/storybook";
-import { ISession } from "@/types"
+import { ColorModeProvider, Frame, HeaderProvider, SidebarProvider, Toaster, useIsMobile } from "@vrobots/storybook";
+import { useSession } from "./session/SessionProvider";
 
 export type TAppState = 'unauthenticated' | 'authenticated'
 export type TRes = 'mobile' | 'desktop'
@@ -9,11 +9,11 @@ const UNAUTHENTICATED = 'unauthenticated'
 const AUTHENTICATED = 'authenticated'
 
 export interface IAppProps {
-  session: ISession
   children: React.ReactNode
 }
 
-const App = ({ session, children }: IAppProps) => {
+const App = ({ children }: IAppProps) => {
+  const { session } = useSession()
   const isMobile = useIsMobile()
   const res: TRes = isMobile ? 'mobile' : 'desktop'
   const appState: TAppState = !!session.user ? AUTHENTICATED : UNAUTHENTICATED
@@ -23,6 +23,7 @@ const App = ({ session, children }: IAppProps) => {
       attribute="class"
       enableSystem={false}
     >
+      <Toaster />
       <HeaderProvider
         defaultPath={config.state[appState].default_path}
         appName={config.app.name}

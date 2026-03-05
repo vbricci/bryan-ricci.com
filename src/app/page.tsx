@@ -1,9 +1,10 @@
-'use client' 
+'use client'
 import { Geist, Geist_Mono } from "next/font/google";
-import { Box, Button, CloseButton, Dialog, Image, ImageProps, Portal, Text, useDisclosure } from "@chakra-ui/react";
+import { Box, Button, CloseButton, Dialog, IconButton, Image, ImageProps, Link, Portal, Text, useDisclosure } from "@chakra-ui/react";
 import { motion } from "motion/react"
-import { ITimelineItem, Timeline, useColorMode, useHeader } from "@vrobots/storybook";
+import { ITimelineItem, Timeline, useColorMode, useHeader, useSidebar } from "@vrobots/storybook";
 import React from "react";
+import { FaLinkedin } from 'react-icons/fa6'
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,7 +28,6 @@ const TimelineItem = ({ title, click, ...props }: ITimelineItemProps) => {
   return (
     <Box>
       <Text fontSize={'xl'} fontWeight={'bold'} mb={2} cursor={'pointer'} onClick={handleClick}>{title}</Text>
-      {/* <Box display={'flex'}> */}
       <Image
         {...props}
         width={200}
@@ -40,7 +40,6 @@ const TimelineItem = ({ title, click, ...props }: ITimelineItemProps) => {
         cursor={'pointer'}
         onClick={handleClick}
       />
-      {/* </Box> */}
     </Box>
   );
 }
@@ -667,18 +666,19 @@ const MAKE_TIMELINE_ITEMS: (onClick: (src: string, title: string) => void) => IT
 export default function Home() {
   const [hasMounted, setHasMounted] = React.useState(false)
   const { ref: headerRef } = useHeader()
+  const { isOpen } = useSidebar()
   const { colorMode } = useColorMode()
   const { open, onOpen, onClose } = useDisclosure()
-  const [selected, setSelected] = React.useState<{src: string, title: string}>({src: '', title: ''})
+  const [selected, setSelected] = React.useState<{ src: string, title: string }>({ src: '', title: '' })
 
   const handleTimelineItemClick = (src: string, title: string) => {
-    setSelected({src, title})
+    setSelected({ src, title })
     onOpen()
   }
 
   const handleClose = () => {
     onClose()
-    setTimeout(() => setSelected({src: '', title: ''}), 300) // Delay clearing the image until after the dialog has closed
+    setTimeout(() => setSelected({ src: '', title: '' }), 300) // Delay clearing the image until after the dialog has closed
   }
 
   React.useEffect(() => {
@@ -713,6 +713,26 @@ export default function Home() {
           overflowY: 'scroll',
         }}
       >
+        {
+          !isOpen && (
+            <Link
+              href={'https://www.linkedin.com/in/bryan-ricci-180803152/'}
+              target="_blank"
+            >
+              <IconButton
+                aria-label="LinkedIn"
+                position="absolute"
+                top={4 + (headerRef.current?.offsetHeight || 0)}
+                right={4}
+                colorScheme="blue"
+                size="xs"
+                opacity={.8}
+              >
+                <FaLinkedin />
+              </IconButton>
+            </Link>
+          )
+        }
         <Box
           display={'flex'}
           flexDirection={'column'}
