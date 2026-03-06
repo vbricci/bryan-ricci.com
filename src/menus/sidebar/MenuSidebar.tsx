@@ -47,9 +47,26 @@ export const MenuSidebarAuthenticatedMobile = () => {
 }
 
 export const MenuSidebarAuthenticatedDesktop = () => {
+  const [selected, setSelected] = React.useState<string>('')
+  const { toggleSidebar } = useSidebar()
+  const router = useRouter()  
+  const ref = React.useRef<HTMLDivElement>(null)
+
+  const handleMenuClick = (value: string) => {
+    setSelected(value)
+    !!toggleSidebar && toggleSidebar()
+    router.push(value)
+  }
   return (
     <Box>
-      Test
+      <Menu
+        menuItems={[
+          { label: 'Resume', value: '/resume.pdf' },
+        ]}
+        onClick={handleMenuClick}
+        selected={selected}
+        ref={ref}
+      />
     </Box>
   )
 }

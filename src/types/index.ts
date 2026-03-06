@@ -34,15 +34,19 @@ export interface IDevice {
   }
 }
 
+export type IUserRole = 'admin' | 'user' | 'guest'
+
 export interface IUser {
   _id?: string
-  active: boolean
   username: string
   firstName: string
   lastName: string
-  dob: Date | string
   emailAddress: string
+  profilePictureUrl?: string
+
+  // Required for local strategy
   password: string
+  userRoles: IUserRole[]
   secondFactor?: number
   secondFactorExpires?: number
   lastModifiedDate?: number
@@ -52,7 +56,7 @@ export interface IUser {
   resetPasswordToken?: string
   resetPasswordExpires?: number
   salt?: string
-
-  // Not saved in DB
-  key?: string
 }
+
+export type TAppState = 'unauthenticated' | 'authenticated'
+export type TRes = 'mobile' | 'desktop'

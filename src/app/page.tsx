@@ -147,7 +147,6 @@ const MAKE_TIMELINE_ITEMS: (onClick: (src: string, title: string) => void) => IT
   },
   {
     date: "1999 - May",
-    title: "First time writing HTML and CSS",
     component: <TimelineItem
       title="First time writing HTML and CSS"
       src="/timeline_11.jpg"
@@ -279,7 +278,7 @@ const MAKE_TIMELINE_ITEMS: (onClick: (src: string, title: string) => void) => IT
   {
     date: "2011 - January",
     component: <TimelineItem
-      title="Became a spokes model to raise awareness for adolescent homelessness."
+      title="Became a spokesmodel to raise awareness for adolescent homelessness."
       src="/timeline_21.jpg"
       alt="The Oasis Center for Adolescent Homelessness"
       click={onClick}
@@ -318,7 +317,6 @@ const MAKE_TIMELINE_ITEMS: (onClick: (src: string, title: string) => void) => IT
   },
   {
     date: "2013 - August",
-    title: "Moved to Berkeley, California.",
     component: <TimelineItem
       title="Moved to Berkeley, California."
       src="/timeline_23.jpg"
@@ -489,7 +487,6 @@ const MAKE_TIMELINE_ITEMS: (onClick: (src: string, title: string) => void) => IT
   },
   {
     date: "2017 - March",
-    title: "I married the Love of My Life.",
     component: <TimelineItem
       title="I married the Love of My Life."
       src="/timeline_58.jpg"
@@ -550,7 +547,6 @@ const MAKE_TIMELINE_ITEMS: (onClick: (src: string, title: string) => void) => IT
   },
   {
     date: "2020 - July",
-    title: "First writing IAC with Kubernetes.",
     component: <TimelineItem
       title="First time using Kubernetes."
       src="/timeline_44.jpg"
@@ -631,7 +627,6 @@ const MAKE_TIMELINE_ITEMS: (onClick: (src: string, title: string) => void) => IT
   },
   {
     date: "2023 - December",
-    title: "Moved to Spring Branch, Texas.",
     component: <TimelineItem
       title="Moved to Spring Branch, Texas."
       src="/timeline_52.jpg"
@@ -642,7 +637,6 @@ const MAKE_TIMELINE_ITEMS: (onClick: (src: string, title: string) => void) => IT
   },
   {
     date: "2024 - January",
-    title: "Founded Hyperion Healthcare, Inc.",
     component: <TimelineItem
       title="Founded Hyperion Healthcare, Inc."
       src="/timeline_61.jpg"

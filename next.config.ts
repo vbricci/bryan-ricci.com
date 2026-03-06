@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ["local.bryan-ricci.com"],
   transpilePackages: ['@vrobots/storybook'],
   experimental: {
-    optimizePackageImports: ["@chakra-ui/react", "@vrobots/storybook", "react-hook-form"],
+    optimizePackageImports: ["@chakra-ui/react", "@vrobots/storybook", "react-hook-form", "axios", "react-icons", "@emotion/react", "@emotion/styled", "motion"],
   },
 };
 

@@ -2,11 +2,8 @@
 import config from "../config";
 import { ColorModeProvider, Frame, HeaderProvider, SidebarProvider, Toaster, useIsMobile } from "@vrobots/storybook";
 import { useSession } from "./session/SessionProvider";
-
-export type TAppState = 'unauthenticated' | 'authenticated'
-export type TRes = 'mobile' | 'desktop'
-const UNAUTHENTICATED = 'unauthenticated'
-const AUTHENTICATED = 'authenticated'
+import { TAppState, TRes } from "@/types";
+import { AUTHENTICATED, UNAUTHENTICATED } from "@/constants";
 
 export interface IAppProps {
   children: React.ReactNode
@@ -16,6 +13,8 @@ const App = ({ children }: IAppProps) => {
   const { session } = useSession()
   const isMobile = useIsMobile()
   const res: TRes = isMobile ? 'mobile' : 'desktop'
+
+  console.log('App session:', session)
   const appState: TAppState = !!session.user ? AUTHENTICATED : UNAUTHENTICATED
   
   return (
