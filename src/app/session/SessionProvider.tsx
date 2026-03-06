@@ -1,8 +1,7 @@
 'use client'
 
-import { ISession } from "@/types"
+import { ISession } from "@vrobots/user"
 import axios from "axios"
-import { userAgent } from "next/dist/server/web/spec-extension/user-agent"
 import React from "react"
 
 export interface ISessionContextProps {

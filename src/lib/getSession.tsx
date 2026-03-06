@@ -1,4 +1,4 @@
-import { ISession } from '@/types'
+import { ISession } from '@vrobots/user'
 import { notFound } from 'next/navigation'
 import { headers } from 'next/headers'
 import axios from 'axios';
