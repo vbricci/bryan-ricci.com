@@ -19,7 +19,7 @@ const SecondFactorPage = () => {
     console.log("2-Factor Auth Code:", auth.authCode)
     try {
       const response = await axios({
-        url: process.env.NEXT_PUBLIC_API_HOST + `/api/v1/user/${userId}/session/login/second-factor`,
+        url: process.env.NEXT_PUBLIC_API_HOST_USER + `/api/v1/user/${userId}/session/login/second-factor`,
         method: 'POST',
         data: {
           authCode: Number(auth.authCode),

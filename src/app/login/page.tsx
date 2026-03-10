@@ -15,7 +15,7 @@ const LoginPage = () => {
     try {
       const response = await axios({
         method: 'POST',
-        url: process.env.NEXT_PUBLIC_API_HOST + '/api/v1/user/session/login',
+        url: process.env.NEXT_PUBLIC_API_HOST_USER + '/api/v1/user/session/login',
         data: credentials,
       })
 

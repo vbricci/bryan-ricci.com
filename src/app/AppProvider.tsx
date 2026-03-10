@@ -2,7 +2,7 @@
 import React from "react";
 import App from "@/app/App";
 
-import { ISession } from "@/types";
+import { ISession } from "@vrobots/user";
 import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
 import SessionProvider from "./session/SessionProvider";
 
@@ -12,7 +12,6 @@ export interface IAppProviderProps {
 }
 
 const AppProvider: React.FC<IAppProviderProps> = ({ session, children }) => {
- console.log('Session in AppProvider:', session)
  const [isMounted, setIsMounted] = React.useState(false);
 
   React.useEffect(() => {

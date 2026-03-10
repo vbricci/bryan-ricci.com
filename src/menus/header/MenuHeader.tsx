@@ -25,6 +25,14 @@ export const MenuHeaderUnauthenticatedDesktop = () => {
         >
         Resume
       </Link>
+      <Link
+        as={NextLink}
+        href="/login"
+        style={{ textDecoration: 'none' }}
+        colorPalette={'cyan'}
+        >
+        Login
+      </Link>
       <ColorModeButton colorPalette={colorMode === 'light' ? 'orange' : 'white'} />
     </HStack>
   )

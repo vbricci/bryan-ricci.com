@@ -1,10 +1,11 @@
 'use client'
 import { Geist, Geist_Mono } from "next/font/google";
-import { Box, Button, CloseButton, Dialog, IconButton, Image, ImageProps, Link, Portal, Text, useDisclosure } from "@chakra-ui/react";
+import { Box, Button, CloseButton, Dialog, IconButton, Image, Link, Portal, Text, useDisclosure } from "@chakra-ui/react";
 import { motion } from "motion/react"
 import { ITimelineItem, Timeline, useColorMode, useHeader, useSidebar } from "@vrobots/storybook";
 import React from "react";
 import { FaLinkedin } from 'react-icons/fa6'
+import TimelineItem from "@/components/timeline/TimelineItem";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,34 +16,6 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
-
-export interface ITimelineItemProps extends ImageProps {
-  title: string;
-  click: (src: string, title: string) => void;
-}
-
-const TimelineItem = ({ title, click, ...props }: ITimelineItemProps) => {
-  const handleClick = () => {
-    click(props.src as string, title);
-  }
-  return (
-    <Box>
-      <Text fontSize={'xl'} fontWeight={'bold'} mb={2} cursor={'pointer'} onClick={handleClick}>{title}</Text>
-      <Image
-        {...props}
-        width={200}
-        height={200}
-        borderRadius={'full'}
-        margin={{ base: 'auto', md: 0 }}
-        position={'relative'}
-        left={{ base: -4, md: 0 }}
-        right={0}
-        cursor={'pointer'}
-        onClick={handleClick}
-      />
-    </Box>
-  );
-}
 
 const MAKE_TIMELINE_ITEMS: (onClick: (src: string, title: string) => void) => ITimelineItem[] = (onClick) => [
   {

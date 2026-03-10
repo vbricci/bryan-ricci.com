@@ -13,7 +13,7 @@
   "dependencies": {
     "@chakra-ui/react": "^3.33.0",
     "@emotion/react": "^11.14.0",
-    "@vrobots/storybook": "^0.1.57",
+    "@vrobots/storybook": "^0.1.67",
     "axios": "^1.13.6",
     "motion": "^12.34.3",
     "next": "16.1.6",
@@ -33,7 +33,8 @@
     "@types/react-dom": "^19",
     "@vitest/browser-playwright": "^4.0.18",
     "@vitest/coverage-v8": "^4.0.18",
-    "@vrobots/user": "^0.1.4",
+    "@vrobots/file": "^0.1.2",
+    "@vrobots/user": "^0.1.10",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "eslint-plugin-storybook": "^10.2.16",

@@ -14,7 +14,6 @@ const App = ({ children }: IAppProps) => {
   const isMobile = useIsMobile()
   const res: TRes = isMobile ? 'mobile' : 'desktop'
 
-  console.log('App session:', session)
   const appState: TAppState = !!session.user ? AUTHENTICATED : UNAUTHENTICATED
   
   return (
