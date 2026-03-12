@@ -71,6 +71,7 @@ export const MenuSidebarAuthenticatedDesktop = () => {
           { label: 'Timeline', value: '/timeline/edit' },
           { label: 'Journal', value: '/journal' },
           { label: 'Blog', value: '/blog' },
+          { label: 'Files', value: '/files' },
         ]}
         onClick={handleMenuClick}
         selected={selected}

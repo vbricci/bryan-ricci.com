@@ -7,7 +7,7 @@ import 'server-only'
 
 const createAxiosHeaders = (userAgent: string, session?: ISession) => {
   axios.interceptors.request.use((request) => {
-    const authorizationHeader = session ? `Bearer ${session._id}` : ''
+    const authorizationHeader = session ? `Bearer ${session.token}` : ''
     request.headers['User-Agent'] = userAgent
     request.headers['Authorization'] = authorizationHeader
     return request

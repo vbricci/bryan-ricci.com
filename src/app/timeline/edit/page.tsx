@@ -2,31 +2,138 @@
 'use client'
 
 import useFileUpload from "@/hooks/useFileUpload";
-import { Box, Button, Heading, Image } from "@chakra-ui/react";
+import { Box, Button, Card, createListCollection, DatePicker, Field, Heading, Image, Input, Listbox, NativeSelect, Popover, Portal, Stack, useFilter, useListbox, useListCollection, useLiveRef } from "@chakra-ui/react";
+import { MdEditCalendar } from "react-icons/md"
+import { TFilePermission } from "@vrobots/file/dist/modules/file/types";
 import { Page, Form, toaster } from "@vrobots/storybook";
 import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
 import React from "react";
+import { useForm } from "react-hook-form";
+import * as Icons from "react-icons/md"
+import { LuChevronDown } from "react-icons/lu"
+import { CalendarDate, CalendarDateTime, DateFormatter, getLocalTimeZone } from "@internationalized/date"
+import type { DateValue } from "@chakra-ui/react"
+import { type VirtualItem, useVirtualizer } from "@tanstack/react-virtual"
+
+interface IFileWithPermission extends File {
+  permission: TFilePermission
+}
+
+type TTimelinePermission = 'public' | 'private' | 'restricted'
+type TTimelineMediaType = 'image' | 'video' | 'document'
+type TTimelineDateType = 'month+year' | 'date' | 'date+time'
+
+interface ITimelineMedia {
+  type: TTimelineMediaType
+  src: string
+  alt?: string
+}
+
+interface ITimelineItem {
+  _id?: string
+  isTimeline?: boolean
+  date: DateValue | CalendarDate | CalendarDateTime | undefined
+  dateType: TTimelineDateType
+  title: string
+  description: string
+  media: ITimelineMedia[]
+  icon: keyof typeof Icons
+  permission: TTimelinePermission
+}
 
 const TimelineEditPage = () => {
   const [filePreviews, setFilePreviews] = React.useState<string[]>([])
   const [files, setFiles] = React.useState<File[]>([])
-  const [percentageComplete, setPercentageComplete] = React.useState<number[]>([])
+  const [uploadPercentages, setUploadPercentages] = React.useState<number[]>([])
   const router = useRouter()
   const fileUpload = useFileUpload()
+  const [open, setOpen] = React.useState(false)
+  const [inputValue, setInputValue] = React.useState("")
+  const [filterValue, setFilterValue] = React.useState("")
+  const { contains } = useFilter({ sensitivity: "base" })
+  const triggerRef = React.useRef<HTMLButtonElement | null>(null)
 
-  console.log('percentageComplete:', percentageComplete)
+  const icons = React.useMemo(
+    () => Object.keys(Icons).map(key => ({ value: key, label: key })).filter(icon => contains(icon.label, filterValue)),
+    [contains, filterValue]
+  )
+
+  const virtual = useListboxVirtualizer({
+    count: icons.length,
+  })
+
+  const collection = React.useMemo(
+    () => createListCollection({ items: icons }),
+    [icons],
+  )
+
+  // const { collection, filter } = useListCollection({
+  //   initialItems: virtualCollection as any,
+  //   filter: contains,
+  // })
+
+
+  const listbox = useListbox({
+    collection,
+    onValueChange() {
+      setOpen(false)
+      setInputValueFn("")
+      triggerRef.current?.focus()
+    },
+  })
+
+  const setInputValueFn = (value: string) => {
+    setValue('icon', value as any)
+    setInputValue(value)
+    setFilterValue(value)
+  }
+
+  const selectedItem = listbox.selectedItems[0]
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setValue,
+    watch,
+  } = useForm<ITimelineItem>({ defaultValues: { permission: 'private' } })
+
+  const selectedDateType = watch('dateType')
+  const selectedDate = watch('date') || [] as any
+  const timeValue = selectedDate.length > 0 && selectedDateType === 'date+time'
+    ? `${String(selectedDate[0].hour).padStart(2, "0")}:${String(selectedDate[0].minute).padStart(2, "0")}`
+    : ""
 
   const handleFilesSelected = (files: File[]) => {
-    console.log('Selected files:', files);
     setFiles(files)
+  }
+
+  const onDateTimeChange = (details: { value: DateValue[] }) => {
+    const newDate = details.value[0]
+    if (!newDate) return setValue('date', [] as any)
+    const prevTime = selectedDate[0] ?? { hour: 0, minute: 0 }
+    setValue('date', [
+      new CalendarDateTime(
+        newDate.year,
+        newDate.month,
+        newDate.day,
+        prevTime.hour,
+        prevTime.minute,
+      ),
+    ] as any)
+  }
+
+  const onTimeChange = (date: CalendarDateTime) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const [hours, minutes] = e.currentTarget.value.split(":").map(Number)
+    setValue('date', [date.set({ hour: hours, minute: minutes })] as any)
   }
 
   const handleUpload = async () => {
     try {
       const uploadPromises = files.map((file, index) =>
         fileUpload.upload(file, (percent) => {
-          setPercentageComplete((prev) => {
+          setUploadPercentages((prev) => {
             const next = [...prev]
             next[index] = percent
             return next
@@ -34,12 +141,12 @@ const TimelineEditPage = () => {
         })
       )
       const uploadedFiles = await Promise.all(uploadPromises)
-      setTimeout(
-        () => setFilePreviews(prevFilePreviews => ([...prevFilePreviews, ...uploadedFiles.map((file: any) => process.env.NEXT_PUBLIC_API_HOST_FILE + `/api/v1/file/${file._id}` as any)])),
-        1000
+      setFilePreviews(
+        prevFilePreviews => ([
+          ...prevFilePreviews,
+          ...uploadedFiles.map((file: any) => process.env.NEXT_PUBLIC_API_HOST_FILE + `/api/v1/file/${file._id}` as any)
+        ])
       )
-
-      console.log('Uploaded files:', uploadedFiles)
     }
     catch (err) {
       const error = err as AxiosError
@@ -53,6 +160,23 @@ const TimelineEditPage = () => {
     }
   }
 
+  const dateFormat = {
+    'month+year': 'mm/yyyy',
+    'date': 'dd/mm/yyyy',
+    'date+time': 'dd/mm/yyyy HH:MM',
+  }
+
+  React.useEffect(() => {
+    // Cleanup file previews on unmount
+    return () => {
+      filePreviews.forEach((preview) => URL.revokeObjectURL(preview))
+    }
+  }, [filePreviews])
+
+  React.useEffect(() => {
+    setValue('date', void 0)
+  }, [selectedDateType, setValue])
+
   return (
     <Page
       breadcrumbs={[
@@ -60,14 +184,181 @@ const TimelineEditPage = () => {
         { title: 'Timeline' },
       ]}
     >
-      <Heading>Timeline Edit Form</Heading>
+      <Heading mb={4}>Timeline Edit Form</Heading>
+
+      <Card.Root mb={4}>
+        <Card.Body>
+          <Stack gap="4">
+            <Field.Root
+              invalid={!!errors.permission}
+              required
+            >
+              <Field.Label>Permission</Field.Label>
+              <NativeSelect.Root size="sm">
+                <NativeSelect.Field
+                  {...register("permission", { required: "Please select a permission level" })}>
+                  <option value="public">Public</option>
+                  <option value="private">Private</option>
+                </NativeSelect.Field>
+                <NativeSelect.Indicator />
+              </NativeSelect.Root>
+            </Field.Root>
+
+            <Field.Root
+              invalid={!!errors.dateType}
+              required
+            >
+              <Field.Label>
+                Date Type
+                <Field.RequiredIndicator />
+              </Field.Label>
+              <NativeSelect.Root size="sm">
+                <NativeSelect.Field placeholder="Select an option"
+                  {...register("dateType", { required: "Please select a date type" })}>
+                  <option value="month+year">Month &amp; Year</option>
+                  <option value="date">Date</option>
+                  <option value="date+time">Date &amp; Time</option>
+                </NativeSelect.Field>
+                <NativeSelect.Indicator />
+              </NativeSelect.Root>
+            </Field.Root>
+
+            {
+              !!selectedDateType && (
+                <Field.Root>
+                  <DatePicker.Root
+                    value={selectedDateType === 'date+time' ? selectedDate : void 0}
+                    onValueChange={selectedDateType === 'date+time' ? onDateTimeChange : void 0}
+                    closeOnSelect={selectedDateType !== 'date+time'}
+                    format={format(selectedDateType as TTimelineDateType)}
+                    parse={parse(selectedDateType as TTimelineDateType)}
+                    invalid={!!errors.date}
+                    defaultView={'year'}
+                    minView={selectedDateType === 'month+year' ? 'month' : 'day'}
+                    placeholder={dateFormat[selectedDateType as 'date']}
+                    required
+                    {...(selectedDateType !== 'date+time' ? register("date", { required: "Please select a date" }) : {}) as any}
+                  >
+                    <DatePicker.Label>
+                      Date
+                      <Field.RequiredIndicator />
+                    </DatePicker.Label>
+                    {
+                      selectedDateType !== 'date+time' ? (
+                        <DatePicker.Control>
+                          <DatePicker.Input />
+                          <DatePicker.IndicatorGroup>
+                            <DatePicker.Trigger>
+                              <MdEditCalendar />
+                            </DatePicker.Trigger>
+                          </DatePicker.IndicatorGroup>
+                        </DatePicker.Control>
+                      ) : (
+                        <DatePicker.Control>
+                          <DatePicker.Trigger asChild unstyled>
+                            <Button variant="outline" width="full" justifyContent="space-between">
+                              {selectedDate.length > 0
+                                ? formatDateTime.format(selectedDate[0].toDate(getLocalTimeZone()))
+                                : "Select date and time"}
+                              <MdEditCalendar />
+                            </Button>
+                          </DatePicker.Trigger>
+                        </DatePicker.Control>
+                      )
+                    }
+                    <Portal>
+                      <DatePicker.Positioner>
+                        <DatePicker.Content>
+                          <DatePicker.View view="day">
+                            <DatePicker.Header />
+                            <DatePicker.DayTable />
+                            {selectedDateType === 'date+time' && (
+                              <Input type="time" value={timeValue} onChange={onTimeChange(selectedDate[0])} />
+                            )}
+                          </DatePicker.View>
+                          <DatePicker.View view="month">
+                            <DatePicker.Header />
+                            <DatePicker.MonthTable />
+                          </DatePicker.View>
+                          <DatePicker.View view="year">
+                            <DatePicker.Header />
+                            <DatePicker.YearTable />
+                          </DatePicker.View>
+                        </DatePicker.Content>
+                      </DatePicker.Positioner>
+                    </Portal>
+                  </DatePicker.Root>
+                </Field.Root>
+              )
+            }
+
+            <Field.Root
+              invalid={!!errors.dateType}
+              required
+            >
+              <Field.Label>
+                Icon
+                <Field.RequiredIndicator />
+              </Field.Label>
+              <Popover.Root open={open} onOpenChange={(e) => setOpen(e.open)}>
+                <Popover.Trigger asChild>
+                  <Button size="sm" ref={triggerRef} variant="outline" width={'100%'}>
+                    {selectedItem ? <>{React.createElement(Icons[selectedItem.value as 'MdEditCalendar'], {})} {selectedItem.label.replace('Md', '')}</> : "Select and icon"} <LuChevronDown />
+                  </Button>
+                </Popover.Trigger>
+
+                <Portal>
+                  <Popover.Positioner>
+                    <Popover.Content _closed={{ animation: "none" }}>
+                      <Popover.Body p="0">
+                        <Listbox.RootProvider value={listbox} gap="0" overflow="hidden">
+                          <Listbox.Input
+                            minH="10"
+                            px="3"
+                            roundedTop="l2"
+                            bg="transparent"
+                            outline="0"
+                            value={inputValue}
+                            onChange={(e) => setInputValueFn(e.currentTarget.value)}
+                          />
+                          <Listbox.Label pl={4}>Select Icon ({icons.length} items)</Listbox.Label>
+                          <Listbox.Content ref={virtual.scrollRef} maxH="300px">
+                            <div {...virtual.getViewportProps()}>
+                              {virtual.virtualItems.map((virtualItem) => {
+                                const item = icons[virtualItem.index]
+                                return (
+                                  <Listbox.Item item={item} key={item.value} {...virtual.getItemProps({ virtualItem })}>
+                                    <Box display="flex" alignItems="center" gap="3" flex="1">
+                                      <Box color="fg.muted" flexShrink="0">
+                                        {React.createElement(Icons[item.value as 'MdEditCalendar'], {})}
+                                      </Box>
+                                      <Listbox.ItemText>{item.label.replace('Md', '')}</Listbox.ItemText>
+                                    </Box>
+                                    <Listbox.ItemIndicator />
+                                  </Listbox.Item>
+                                )
+                              })}
+                            </div>
+                          </Listbox.Content>
+                        </Listbox.RootProvider>
+                      </Popover.Body>
+                    </Popover.Content>
+                  </Popover.Positioner>
+                </Portal>
+              </Popover.Root>
+            </Field.Root>
+          </Stack>
+        </Card.Body>
+      </Card.Root>
+
       <Form.FileUploader
         onFilesSelected={handleFilesSelected}
+        uploadPercentages={uploadPercentages}
       >
         {
           files.length > 0 && (
             <Button mt={4} colorScheme="blue" onClick={handleUpload}>
-              Upload Files
+              Upload
             </Button>
           )
         }
@@ -82,6 +373,138 @@ const TimelineEditPage = () => {
       ))}
     </Page >
   );
+}
+
+const format = (dateType: TTimelineDateType) => (date: DateValue) => {
+  const day = date.day.toString().padStart(2, "0")
+  const month = date.month.toString().padStart(2, "0")
+  const year = date.year.toString()
+  if (dateType === 'month+year') {
+    return `${month}/${year}`
+  }
+  return `${month}/${day}/${year}`
+}
+
+const parse = (dateType: TTimelineDateType) => (string: string) => {
+  if (dateType === 'month+year') {
+    const fullRegex = /^(\d{1,2})\/(\d{4})$/
+    const fullMatch = string.match(fullRegex)
+    if (fullMatch) {
+      const [, month, year] = fullMatch.map(Number)
+      return new CalendarDate(year, month, 1)
+    }
+  }
+}
+
+export const formatDateTime = new DateFormatter("en-US", {
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+  hour: "numeric",
+  minute: "2-digit",
+})
+
+interface ScrollToIndexDetails {
+  index: number
+  getElement: () => HTMLElement | null
+  immediate?: boolean
+}
+
+function useListboxVirtualizer(props: { count: number }) {
+  const scrollRef = React.useRef<HTMLDivElement | null>(null)
+  const scrollTimeoutRef = React.useRef<NodeJS.Timeout | null>(null)
+
+  const clearScrollTimeout = () => {
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current)
+      scrollTimeoutRef.current = null
+    }
+  }
+
+  const virtualizer = useVirtualizer({
+    count: props.count,
+    getScrollElement: () => scrollRef.current,
+    estimateSize: () => 32,
+    overscan: 10,
+  })
+
+  const virtualizerRef = useLiveRef(virtualizer)
+
+  const scrollToIndexFn = (details: ScrollToIndexDetails) => {
+    clearScrollTimeout()
+
+    const scrollToIndex = () => {
+      const virtualizer = virtualizerRef.current
+      const virtualItems = virtualizer.getVirtualItems()
+      const virtualItem = virtualItems.find(
+        (item) => item.index === details.index,
+      )
+
+      if (virtualItem) {
+        const element = details.getElement()
+        element?.scrollIntoView({ block: "nearest" })
+        clearScrollTimeout()
+        return
+      }
+
+      // Scroll towards the target index
+      virtualizer.scrollToIndex(details.index)
+
+      // Continue scrolling in intervals until we reach the target
+      if (!details.immediate) {
+        scrollTimeoutRef.current = setTimeout(scrollToIndex, 16) // ~60fps
+      }
+    }
+
+    scrollToIndex()
+  }
+
+  // Cleanup timeout on unmount
+  React.useEffect(() => clearScrollTimeout, [])
+
+  const totalSize = virtualizer.getTotalSize()
+
+  return {
+    scrollRef,
+    scrollToIndexFn,
+    totalSize,
+    virtualItems: virtualizer.getVirtualItems(),
+    getViewportProps(
+      props: React.ComponentProps<"div"> = {},
+    ): React.ComponentProps<"div"> {
+      return {
+        ...props,
+        style: {
+          ...props.style,
+          height: `${totalSize}px`,
+          width: "100%",
+          position: "relative",
+        },
+      }
+    },
+    getItemProps(
+      props: React.ComponentProps<"div"> & { virtualItem: VirtualItem },
+    ): React.ComponentProps<"div"> {
+      const { virtualItem, ...rest } = props
+      return {
+        ...rest,
+        "aria-posinset": virtualItem.index + 1,
+        "aria-setsize": totalSize,
+        style: {
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          ...rest.style,
+          height: `${virtualItem.size}px`,
+          transform: `translateY(${virtualItem.start}px)`,
+        },
+      }
+    },
+  }
 }
 
 export default TimelineEditPage;
