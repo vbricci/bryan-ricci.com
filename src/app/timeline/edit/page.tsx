@@ -15,31 +15,10 @@ import { LuChevronDown } from "react-icons/lu"
 import { CalendarDate, CalendarDateTime, DateFormatter, getLocalTimeZone } from "@internationalized/date"
 import type { DateValue } from "@chakra-ui/react"
 import { type VirtualItem, useVirtualizer } from "@tanstack/react-virtual"
+import { ITimelineItem, ITimelineMedia, TTimelineDateType, } from "@vrobots/writing"
 
 interface IFileWithPermission extends File {
   permission: TFilePermission
-}
-
-type TTimelinePermission = 'public' | 'private' | 'restricted'
-type TTimelineMediaType = 'image' | 'video' | 'document'
-type TTimelineDateType = 'month+year' | 'date' | 'date+time'
-
-interface ITimelineMedia {
-  type: TTimelineMediaType
-  src: string
-  alt?: string
-}
-
-interface ITimelineItem {
-  _id?: string
-  isTimeline?: boolean
-  date: DateValue | CalendarDate | CalendarDateTime[] | undefined
-  dateType: TTimelineDateType
-  title: string
-  description: string
-  media: ITimelineMedia[]
-  icon: keyof typeof Icons
-  permission: TTimelinePermission
 }
 
 const TimelineEditPage = () => {
