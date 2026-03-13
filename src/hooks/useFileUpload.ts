@@ -12,8 +12,6 @@ const useFileUpload = () => {
       (file: File, callbackPercentage?: (percent: number) => void) => new Promise((resolve, reject) => {
         const data = new FormData()
         const request = new XMLHttpRequest()
-
-        console.log('Uploading file:', file)
       
         data.append('file', file)
       

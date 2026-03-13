@@ -2,7 +2,7 @@
 'use client'
 
 import useFileUpload from "@/hooks/useFileUpload";
-import { Box, Button, Card, createListCollection, DatePicker, Field, Heading, Image, Input, Listbox, NativeSelect, Popover, Portal, Stack, useFilter, useListbox, useListCollection, useLiveRef } from "@chakra-ui/react";
+import { Box, Button, Card, createListCollection, DatePicker, Field, Image, Input, Listbox, NativeSelect, Popover, Portal, Stack, useFilter, useListbox, useLiveRef } from "@chakra-ui/react";
 import { MdEditCalendar } from "react-icons/md"
 import { TFilePermission } from "@vrobots/file/dist/modules/file/types";
 import { Page, Form, toaster } from "@vrobots/storybook";
@@ -33,7 +33,7 @@ interface ITimelineMedia {
 interface ITimelineItem {
   _id?: string
   isTimeline?: boolean
-  date: DateValue | CalendarDate | CalendarDateTime | undefined
+  date: DateValue | CalendarDate | CalendarDateTime[] | undefined
   dateType: TTimelineDateType
   title: string
   description: string
@@ -43,13 +43,11 @@ interface ITimelineItem {
 }
 
 const TimelineEditPage = () => {
-  const [filePreviews, setFilePreviews] = React.useState<string[]>([])
   const [files, setFiles] = React.useState<File[]>([])
   const [uploadPercentages, setUploadPercentages] = React.useState<number[]>([])
   const router = useRouter()
   const fileUpload = useFileUpload()
   const [open, setOpen] = React.useState(false)
-  const [inputValue, setInputValue] = React.useState("")
   const [filterValue, setFilterValue] = React.useState("")
   const { contains } = useFilter({ sensitivity: "base" })
   const triggerRef = React.useRef<HTMLButtonElement | null>(null)
@@ -68,28 +66,21 @@ const TimelineEditPage = () => {
     [icons],
   )
 
-  // const { collection, filter } = useListCollection({
-  //   initialItems: virtualCollection as any,
-  //   filter: contains,
-  // })
-
-
   const listbox = useListbox({
     collection,
     onValueChange() {
       setOpen(false)
       setInputValueFn("")
+      !!selectedIcon && setValue('icon', selectedIcon.label as any)
       triggerRef.current?.focus()
     },
   })
 
   const setInputValueFn = (value: string) => {
-    setValue('icon', value as any)
-    setInputValue(value)
     setFilterValue(value)
   }
 
-  const selectedItem = listbox.selectedItems[0]
+  const selectedIcon = listbox.selectedItems[0]
 
   const {
     register,
@@ -109,11 +100,16 @@ const TimelineEditPage = () => {
     setFiles(files)
   }
 
+  const onChangeDateType = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setValue('date', void 0)
+    setValue('dateType', e.currentTarget.value as any)
+  }
+
   const onDateTimeChange = (details: { value: DateValue[] }) => {
     const newDate = details.value[0]
     if (!newDate) return setValue('date', [] as any)
     const prevTime = selectedDate[0] ?? { hour: 0, minute: 0 }
-    setValue('date', [
+    const value = [
       new CalendarDateTime(
         newDate.year,
         newDate.month,
@@ -121,7 +117,8 @@ const TimelineEditPage = () => {
         prevTime.hour,
         prevTime.minute,
       ),
-    ] as any)
+    ] as CalendarDateTime[]
+    setValue('date', value)
   }
 
   const onTimeChange = (date: CalendarDateTime) => (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -141,12 +138,11 @@ const TimelineEditPage = () => {
         })
       )
       const uploadedFiles = await Promise.all(uploadPromises)
-      setFilePreviews(
-        prevFilePreviews => ([
-          ...prevFilePreviews,
-          ...uploadedFiles.map((file: any) => process.env.NEXT_PUBLIC_API_HOST_FILE + `/api/v1/file/${file._id}` as any)
-        ])
-      )
+      return uploadedFiles.map((file: any) => ({
+        type: file.mimetype.startsWith('image') ? 'image' : file.mimetype.startsWith('video') ? 'video' : 'document',
+        src: `/api/v1/file/${file._id}`,
+        alt: file.filename,
+      } as ITimelineMedia))
     }
     catch (err) {
       const error = err as AxiosError
@@ -160,22 +156,21 @@ const TimelineEditPage = () => {
     }
   }
 
-  const dateFormat = {
-    'month+year': 'mm/yyyy',
-    'date': 'dd/mm/yyyy',
-    'date+time': 'dd/mm/yyyy HH:MM',
+  const onSubmit = async (data: ITimelineItem) => {
+    const media = await handleUpload()
+    const timelineItem = {
+      ...data,
+      media,
+    }
+    console.log(timelineItem)
   }
 
-  React.useEffect(() => {
-    // Cleanup file previews on unmount
-    return () => {
-      filePreviews.forEach((preview) => URL.revokeObjectURL(preview))
-    }
-  }, [filePreviews])
-
-  React.useEffect(() => {
-    setValue('date', void 0)
-  }, [selectedDateType, setValue])
+  // React.useEffect(() => {
+  //   // Cleanup file previews on unmount
+  //   return () => {
+  //     filePreviews.forEach((preview) => URL.revokeObjectURL(preview))
+  //   }
+  // }, [filePreviews])
 
   return (
     <Page
@@ -184,193 +179,217 @@ const TimelineEditPage = () => {
         { title: 'Timeline' },
       ]}
     >
-      <Heading mb={4}>Timeline Edit Form</Heading>
-
       <Card.Root mb={4}>
         <Card.Body>
-          <Stack gap="4">
-            <Field.Root
-              invalid={!!errors.permission}
-              required
-            >
-              <Field.Label>Permission</Field.Label>
-              <NativeSelect.Root size="sm">
-                <NativeSelect.Field
-                  {...register("permission", { required: "Please select a permission level" })}>
-                  <option value="public">Public</option>
-                  <option value="private">Private</option>
-                </NativeSelect.Field>
-                <NativeSelect.Indicator />
-              </NativeSelect.Root>
-            </Field.Root>
-
-            <Field.Root
-              invalid={!!errors.dateType}
-              required
-            >
-              <Field.Label>
-                Date Type
-                <Field.RequiredIndicator />
-              </Field.Label>
-              <NativeSelect.Root size="sm">
-                <NativeSelect.Field placeholder="Select an option"
-                  {...register("dateType", { required: "Please select a date type" })}>
-                  <option value="month+year">Month &amp; Year</option>
-                  <option value="date">Date</option>
-                  <option value="date+time">Date &amp; Time</option>
-                </NativeSelect.Field>
-                <NativeSelect.Indicator />
-              </NativeSelect.Root>
-            </Field.Root>
-
-            {
-              !!selectedDateType && (
-                <Field.Root>
-                  <DatePicker.Root
-                    value={selectedDateType === 'date+time' ? selectedDate : void 0}
-                    onValueChange={selectedDateType === 'date+time' ? onDateTimeChange : void 0}
-                    closeOnSelect={selectedDateType !== 'date+time'}
-                    format={format(selectedDateType as TTimelineDateType)}
-                    parse={parse(selectedDateType as TTimelineDateType)}
-                    invalid={!!errors.date}
-                    defaultView={'year'}
-                    minView={selectedDateType === 'month+year' ? 'month' : 'day'}
-                    placeholder={dateFormat[selectedDateType as 'date']}
-                    required
-                    {...(selectedDateType !== 'date+time' ? register("date", { required: "Please select a date" }) : {}) as any}
+          <Card.Title>New Timeline Item</Card.Title>
+          <Card.Description mb={4}>Create a new item for your timeline.</Card.Description>
+          <Box as="form" onSubmit={handleSubmit(onSubmit)}>
+            <Stack gap="4">
+              <Field.Root
+                invalid={!!errors.permission}
+                required
+              >
+                <Field.Label>Permission</Field.Label>
+                <NativeSelect.Root size="sm">
+                  <NativeSelect.Field
+                    {...register("permission", { required: "Please select a permission level" })}
+                    autoFocus
                   >
-                    <DatePicker.Label>
+                    <option value="public">Public</option>
+                    <option value="private">Private</option>
+                  </NativeSelect.Field>
+                  <NativeSelect.Indicator />
+                </NativeSelect.Root>
+              </Field.Root>
+
+              <Field.Root
+                invalid={!!errors.dateType}
+                required
+              >
+                <Field.Label>
+                  Date Type
+                  <Field.RequiredIndicator />
+                </Field.Label>
+                <NativeSelect.Root size="sm">
+                  <NativeSelect.Field placeholder="Select an option"
+                    {...register("dateType", { required: "Please select a date type", onChange: onChangeDateType })}>
+                    <option value="month+year">Month &amp; Year</option>
+                    <option value="date">Date</option>
+                    <option value="date+time">Date &amp; Time</option>
+                  </NativeSelect.Field>
+                  <NativeSelect.Indicator />
+                </NativeSelect.Root>
+              </Field.Root>
+
+              {
+                !!selectedDateType && (
+                  <Field.Root>
+                    <Field.Label>
                       Date
                       <Field.RequiredIndicator />
-                    </DatePicker.Label>
-                    {
-                      selectedDateType !== 'date+time' ? (
-                        <DatePicker.Control>
-                          <DatePicker.Input />
-                          <DatePicker.IndicatorGroup>
-                            <DatePicker.Trigger>
-                              <MdEditCalendar />
+                    </Field.Label>
+                    <DatePicker.Root
+                      value={selectedDateType === 'date+time' ? selectedDate : void 0}
+                      onValueChange={selectedDateType === 'date+time' ? onDateTimeChange : void 0}
+                      closeOnSelect={selectedDateType !== 'date+time'}
+                      format={format(selectedDateType as TTimelineDateType)}
+                      parse={parse(selectedDateType as TTimelineDateType)}
+                      invalid={!!errors.date}
+                      defaultView={'month'}
+                      minView={selectedDateType === 'month+year' ? 'month' : 'day'}
+                      placeholder={dateFormat[selectedDateType as 'date']}
+                      required
+                      {...(selectedDateType !== 'date+time' ? register("date", { required: "Please select a date" }) : {}) as any}
+                    >
+                      {
+                        selectedDateType !== 'date+time' ? (
+                          <DatePicker.Control>
+                            <DatePicker.Input />
+                            <DatePicker.IndicatorGroup>
+                              <DatePicker.Trigger>
+                                <MdEditCalendar />
+                              </DatePicker.Trigger>
+                            </DatePicker.IndicatorGroup>
+                          </DatePicker.Control>
+                        ) : (
+                          <DatePicker.Control>
+                            <DatePicker.Trigger asChild unstyled>
+                              <Button variant="outline" width="full" justifyContent="space-between">
+                                {selectedDate.length > 0
+                                  ? formatDateTime.format(selectedDate[0]?.toDate(getLocalTimeZone()))
+                                  : "Select date and time"}
+                                <MdEditCalendar />
+                              </Button>
                             </DatePicker.Trigger>
-                          </DatePicker.IndicatorGroup>
-                        </DatePicker.Control>
-                      ) : (
-                        <DatePicker.Control>
-                          <DatePicker.Trigger asChild unstyled>
-                            <Button variant="outline" width="full" justifyContent="space-between">
-                              {selectedDate.length > 0
-                                ? formatDateTime.format(selectedDate[0].toDate(getLocalTimeZone()))
-                                : "Select date and time"}
-                              <MdEditCalendar />
-                            </Button>
-                          </DatePicker.Trigger>
-                        </DatePicker.Control>
-                      )
-                    }
-                    <Portal>
-                      <DatePicker.Positioner>
-                        <DatePicker.Content>
-                          <DatePicker.View view="day">
-                            <DatePicker.Header />
-                            <DatePicker.DayTable />
-                            {selectedDateType === 'date+time' && (
-                              <Input type="time" value={timeValue} onChange={onTimeChange(selectedDate[0])} />
-                            )}
-                          </DatePicker.View>
-                          <DatePicker.View view="month">
-                            <DatePicker.Header />
-                            <DatePicker.MonthTable />
-                          </DatePicker.View>
-                          <DatePicker.View view="year">
-                            <DatePicker.Header />
-                            <DatePicker.YearTable />
-                          </DatePicker.View>
-                        </DatePicker.Content>
-                      </DatePicker.Positioner>
-                    </Portal>
-                  </DatePicker.Root>
-                </Field.Root>
-              )
-            }
+                          </DatePicker.Control>
+                        )
+                      }
+                      <Portal>
+                        <DatePicker.Positioner>
+                          <DatePicker.Content>
+                            <DatePicker.View view="day">
+                              <DatePicker.Header />
+                              <DatePicker.DayTable />
+                              {selectedDateType === 'date+time' && (
+                                <Input type="time" value={timeValue} onChange={onTimeChange(selectedDate[0])} />
+                              )}
+                            </DatePicker.View>
+                            <DatePicker.View view="month">
+                              <DatePicker.Header />
+                              <DatePicker.MonthTable />
+                            </DatePicker.View>
+                            <DatePicker.View view="year">
+                              <DatePicker.Header />
+                              <DatePicker.YearTable />
+                            </DatePicker.View>
+                          </DatePicker.Content>
+                        </DatePicker.Positioner>
+                      </Portal>
+                    </DatePicker.Root>
+                  </Field.Root>
+                )
+              }
 
-            <Field.Root
-              invalid={!!errors.dateType}
-              required
-            >
-              <Field.Label>
-                Icon
-                <Field.RequiredIndicator />
-              </Field.Label>
-              <Popover.Root open={open} onOpenChange={(e) => setOpen(e.open)}>
-                <Popover.Trigger asChild>
-                  <Button size="sm" ref={triggerRef} variant="outline" width={'100%'}>
-                    {selectedItem ? <>{React.createElement(Icons[selectedItem.value as 'MdEditCalendar'], {})} {selectedItem.label.replace('Md', '')}</> : "Select and icon"} <LuChevronDown />
-                  </Button>
-                </Popover.Trigger>
+              <Field.Root
+                invalid={!!errors.dateType}
+                required
+              >
+                <Field.Label>
+                  Icon
+                  <Field.RequiredIndicator />
+                </Field.Label>
+                <Popover.Root open={open} onOpenChange={(e) => setOpen(e.open)}>
+                  <Popover.Trigger asChild>
+                    <Button size="sm" ref={triggerRef} variant="outline" width={'100%'}>
+                      {selectedIcon ? <>{React.createElement(Icons[selectedIcon.value as 'MdEditCalendar'], {})} {selectedIcon.label.replace('Md', '')}</> : "Select and icon"} <LuChevronDown />
+                    </Button>
+                  </Popover.Trigger>
 
-                <Portal>
-                  <Popover.Positioner>
-                    <Popover.Content _closed={{ animation: "none" }}>
-                      <Popover.Body p="0">
-                        <Listbox.RootProvider value={listbox} gap="0" overflow="hidden">
-                          <Listbox.Input
-                            minH="10"
-                            px="3"
-                            roundedTop="l2"
-                            bg="transparent"
-                            outline="0"
-                            value={inputValue}
-                            onChange={(e) => setInputValueFn(e.currentTarget.value)}
-                          />
-                          <Listbox.Label pl={4}>Select Icon ({icons.length} items)</Listbox.Label>
-                          <Listbox.Content ref={virtual.scrollRef} maxH="300px">
-                            <div {...virtual.getViewportProps()}>
-                              {virtual.virtualItems.map((virtualItem) => {
-                                const item = icons[virtualItem.index]
-                                return (
-                                  <Listbox.Item item={item} key={item.value} {...virtual.getItemProps({ virtualItem })}>
-                                    <Box display="flex" alignItems="center" gap="3" flex="1">
-                                      <Box color="fg.muted" flexShrink="0">
-                                        {React.createElement(Icons[item.value as 'MdEditCalendar'], {})}
+                  <Portal>
+                    <Popover.Positioner>
+                      <Popover.Content _closed={{ animation: "none" }}>
+                        <Popover.Body p="0">
+                          <Listbox.RootProvider value={listbox} gap="0" overflow="hidden">
+                            <Listbox.Input
+                              minH="10"
+                              px="3"
+                              roundedTop="l2"
+                              bg="transparent"
+                              outline="0"
+                              onChange={(e) => setInputValueFn(e.currentTarget.value)}
+                            />
+                            <Listbox.Label pl={4}>Select Icon ({icons.length} items)</Listbox.Label>
+                            <Listbox.Content ref={virtual.scrollRef} maxH="300px">
+                              <div {...virtual.getViewportProps()}>
+                                {virtual.virtualItems.map((virtualItem) => {
+                                  const item = icons[virtualItem.index]
+                                  return (
+                                    <Listbox.Item item={item} key={item.value} {...virtual.getItemProps({ virtualItem })}>
+                                      <Box display="flex" alignItems="center" gap="3" flex="1">
+                                        <Box color="fg.muted" flexShrink="0">
+                                          {React.createElement(Icons[item.value as 'MdEditCalendar'], {})}
+                                        </Box>
+                                        <Listbox.ItemText>{item.label.replace('Md', '')}</Listbox.ItemText>
                                       </Box>
-                                      <Listbox.ItemText>{item.label.replace('Md', '')}</Listbox.ItemText>
-                                    </Box>
-                                    <Listbox.ItemIndicator />
-                                  </Listbox.Item>
-                                )
-                              })}
-                            </div>
-                          </Listbox.Content>
-                        </Listbox.RootProvider>
-                      </Popover.Body>
-                    </Popover.Content>
-                  </Popover.Positioner>
-                </Portal>
-              </Popover.Root>
-            </Field.Root>
-          </Stack>
+                                      <Listbox.ItemIndicator />
+                                    </Listbox.Item>
+                                  )
+                                })}
+                              </div>
+                            </Listbox.Content>
+                          </Listbox.RootProvider>
+                        </Popover.Body>
+                      </Popover.Content>
+                    </Popover.Positioner>
+                  </Portal>
+                </Popover.Root>
+              </Field.Root>
+
+              <Field.Root
+                invalid={!!errors.title}
+                required
+              >
+                <Field.Label>
+                  Title
+                  <Field.RequiredIndicator />
+                </Field.Label>
+                <Input
+                  {
+                  ...register("title",
+                    {
+                      required: "Please enter a title",
+                    }
+                  )
+                  }
+                />
+                <Field.ErrorText>{errors.title?.message as string}</Field.ErrorText>
+              </Field.Root>
+
+              <Field.Root>
+                <Field.Label>Cover Image</Field.Label>
+                <Form.FileUploader
+                  onFilesSelected={handleFilesSelected}
+                  uploadPercentages={uploadPercentages}
+                  width={'100%'}
+                />
+
+                {/* {filePreviews.map((src, key) => (
+                  <Image
+                    key={'uploaded-image-' + key}
+                    src={src}
+                    alt={'Uploaded Image'}
+                  />
+                ))} */}
+              </Field.Root>
+            </Stack>
+
+
+            <Button mt={4} type="submit" colorScheme="blue">
+              Save Timeline Item
+            </Button>
+          </Box>
         </Card.Body>
       </Card.Root>
-
-      <Form.FileUploader
-        onFilesSelected={handleFilesSelected}
-        uploadPercentages={uploadPercentages}
-      >
-        {
-          files.length > 0 && (
-            <Button mt={4} colorScheme="blue" onClick={handleUpload}>
-              Upload
-            </Button>
-          )
-        }
-      </Form.FileUploader>
-
-      {filePreviews.map((src, key) => (
-        <Image
-          key={'uploaded-image-' + key}
-          src={src}
-          alt={'Uploaded Image'}
-        />
-      ))}
     </Page >
   );
 }
@@ -394,6 +413,12 @@ const parse = (dateType: TTimelineDateType) => (string: string) => {
       return new CalendarDate(year, month, 1)
     }
   }
+}
+
+const dateFormat = {
+  'month+year': 'mm/yyyy',
+  'date': 'dd/mm/yyyy',
+  'date+time': 'dd/mm/yyyy HH:MM',
 }
 
 export const formatDateTime = new DateFormatter("en-US", {
