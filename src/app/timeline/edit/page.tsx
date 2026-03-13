@@ -2,9 +2,9 @@
 'use client'
 
 import useFileUpload from "@/hooks/useFileUpload";
-import { Box, Button, Card, createListCollection, DatePicker, Field, Image, Input, Listbox, NativeSelect, Popover, Portal, Stack, useFilter, useListbox, useLiveRef } from "@chakra-ui/react";
+import { Box, Button, Card, createListCollection, DatePicker, Field, Input, Listbox, NativeSelect, Popover, Portal, Stack, useFilter, useListbox, useLiveRef } from "@chakra-ui/react";
 import { MdEditCalendar } from "react-icons/md"
-import { TFilePermission } from "@vrobots/file/dist/modules/file/types";
+import { TFilePermission } from "@vrobots/file";
 import { Page, Form, toaster } from "@vrobots/storybook";
 import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
