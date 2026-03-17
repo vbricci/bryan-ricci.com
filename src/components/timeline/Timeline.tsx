@@ -15,7 +15,7 @@ export const useTimeline = () => {
     try {
       const { data: timeline } = await axios({
         method: 'GET',
-        url: process.env.NEXT_PUBLIC_API_HOST_WRITING + '/api/v1/writing/timeline/master',
+        url: process.env.NEXT_PUBLIC_API_HOST + '/api/v1/writing/timeline/master',
       })
       const items = timeline?.items?.map((item: ITimelineItem) => ({
         ...item,
@@ -79,7 +79,7 @@ const makeTimelineItem = (showOwnerOptions: boolean, onClick: (src: string, titl
       _id={timelineItem._id as string}
       title={timelineItem.title}
       description={timelineItem.description}
-      src={process.env.NEXT_PUBLIC_API_HOST_FILE + timelineItem.media[0].src}
+      src={process.env.NEXT_PUBLIC_API_HOST + timelineItem.media[0].src}
       alt={timelineItem.media[0].alt}
       showOwnerOptions={showOwnerOptions}
       click={onClick}

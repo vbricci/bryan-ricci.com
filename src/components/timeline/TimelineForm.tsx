@@ -393,7 +393,7 @@ const TimelineForm = ({ timelineItem }: ITimelineFormProps) => {
               {!!timelineItem && timelineItem.media.map((media, key) => (
                 <Image
                   key={'uploaded-image-' + key}
-                  src={process.env.NEXT_PUBLIC_API_HOST_FILE + media.src}
+                  src={process.env.NEXT_PUBLIC_API_HOST + media.src}
                   alt={media.alt}
                 />
               ))}
