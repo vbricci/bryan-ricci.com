@@ -33,7 +33,7 @@ const useFileUpload = () => {
         })
       
         request.responseType = 'json'
-        request.open('post', process.env.NEXT_PUBLIC_API_HOST + `/api/v1/file/upload/${permission}`) 
+        request.open('post', `/api/v1/file/upload/${permission}`) 
         request.setRequestHeader('Authorization', `Bearer ${token}`)
         request.send(data)
       }), 
@@ -48,14 +48,14 @@ const useFileUpload = () => {
       
         request.addEventListener('load', () => {
           if (request.status === 200) {
-            resolve({ data: { link: `${process.env.NEXT_PUBLIC_API_HOST}/api/v1/file/stream/${request.response}`}})
+            resolve({ data: { link: `/api/v1/file/stream/${request.response}`}})
           } else {
             reject(request.response)
           }
         })
       
         request.responseType = 'json'
-        request.open('post', process.env.NEXT_PUBLIC_API_HOST + `/api/v1/file/upload`) 
+        request.open('post', `/api/v1/file/upload`) 
         request.setRequestHeader('Authorization', token)
         request.send(data)
       }), 

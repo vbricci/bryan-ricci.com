@@ -14,7 +14,7 @@ const LogoutPage = () => {
     try {
       const response = await axios({
         method: 'POST',
-        url: process.env.NEXT_PUBLIC_API_HOST_USER + `/api/v1/user/${session.user._id}/session/logout`,
+        url: `/api/v1/user/${session.user._id}/session/logout`,
       })
       setSession(response.data.session)
       toaster.create({

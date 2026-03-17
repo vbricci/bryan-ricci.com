@@ -13,7 +13,7 @@ export const useTimelineItem = (_id?: string) => {
     try {
       const { data: timelineItem } = await axios({
         method: 'GET',
-        url: process.env.NEXT_PUBLIC_API_HOST + `/api/v1/writing/timeline/item/${_id}`,
+        url: `/api/v1/writing/timeline/item/${_id}`,
       })
       setTimelineItem(timelineItem)
     }
@@ -33,7 +33,7 @@ export const useTimelineItem = (_id?: string) => {
     try {
       const { data: timelineItem } = await axios({
         method: 'PUT',
-        url: process.env.NEXT_PUBLIC_API_HOST + `/api/v1/writing/timeline/item`,
+        url: `/api/v1/writing/timeline/item`,
         data: item,
       })
       setTimelineItem(timelineItem)
@@ -61,7 +61,7 @@ export const useTimelineItem = (_id?: string) => {
     try {
       const { data: message } = await axios({
         method: 'DELETE',
-        url: process.env.NEXT_PUBLIC_API_HOST + `/api/v1/writing/timeline/item/${_id}`,
+        url: `/api/v1/writing/timeline/item/${_id}`,
       })
       toaster.create({
         title: 'Timeline Item Deleted',
@@ -87,7 +87,7 @@ export const useTimelineItem = (_id?: string) => {
     try {
       const { data: message } = await axios({
         method: 'POST',
-        url: `${process.env.NEXT_PUBLIC_API_HOST}/api/v1/writing/timeline/item`,
+        url: `/api/v1/writing/timeline/item`,
         data: timelineItem,
       })
       toaster.create({

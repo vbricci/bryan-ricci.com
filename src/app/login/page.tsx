@@ -1,6 +1,6 @@
 'use client'
 
-import { Form, Page, toaster, useHeader } from "@vrobots/storybook"
+import { Form, Page, toaster } from "@vrobots/storybook"
 import { ILoginCredentials } from "@vrobots/storybook"
 import axios, { AxiosError } from "axios"
 import { useRouter } from "next/navigation"
@@ -8,7 +8,6 @@ import { useSession } from "../session/SessionProvider"
 import config from "@/config"
 
 const LoginPage = () => {
-  const { ref: headerRef } = useHeader()
   const { setSession } = useSession()
   const router = useRouter()
 
@@ -16,7 +15,7 @@ const LoginPage = () => {
     try {
       const response = await axios({
         method: 'POST',
-        url: process.env.NEXT_PUBLIC_API_HOST_USER + '/api/v1/user/session/login',
+        url: '/api/v1/user/session/login',
         data: credentials,
       })
 
