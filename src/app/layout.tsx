@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import getSession from "../lib/getSession"
 import AppProvider from "./AppProvider";
-import { Suspense } from "react";
+import React, { Suspense } from "react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,6 +24,8 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+
+  // Fetch session data on the server side
   const session = await getSession()
   return (
     <html lang="en" suppressHydrationWarning>

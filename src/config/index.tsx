@@ -32,7 +32,7 @@ const config: IAppConfig = {
       footer: null,
     },
     authenticated: {
-      default_path: '/dashboard',
+      default_path: '/timeline',
       menus: {
         header: {
           desktop: <MenuHeaderAuthenticatedDesktop />,

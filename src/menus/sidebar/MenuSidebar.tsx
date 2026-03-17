@@ -1,7 +1,7 @@
 'use client'
 import { Box } from "@chakra-ui/react"
 import { Menu, SidebarToggleButton, useSidebar } from "@vrobots/storybook"
-import { useRouter }  from "next/navigation"
+import { usePathname, useRouter }  from "next/navigation"
 import React from "react"
 
 export const MenuSidebarUnauthenticatedMobile = () => {
@@ -47,9 +47,35 @@ export const MenuSidebarAuthenticatedMobile = () => {
 }
 
 export const MenuSidebarAuthenticatedDesktop = () => {
+  const pathname = usePathname()
+  const [selected, setSelected] = React.useState<string>(pathname || '')
+  const router = useRouter()  
+  const ref = React.useRef<HTMLDivElement>(null)
+
+  const handleMenuClick = (value: string) => {
+    setSelected(value)
+    router.push(value)
+  }
+
+  React.useEffect(() => {
+    if (selected !== pathname) {
+      setSelected(pathname)
+    }
+  }, [pathname, selected])
+  
   return (
     <Box>
-      Test
+      <Menu
+        menuItems={[
+          { label: 'Timeline', value: '/timeline' },
+          { label: 'Journal', value: '/journal' },
+          { label: 'Blog', value: '/blog' },
+          { label: 'Files', value: '/files' },
+        ]}
+        onClick={handleMenuClick}
+        selected={selected}
+        ref={ref}
+      />
     </Box>
   )
 }

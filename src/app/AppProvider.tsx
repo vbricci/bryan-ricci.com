@@ -2,15 +2,16 @@
 import React from "react";
 import App from "@/app/App";
 
-import { ISession } from "@/types";
+import { ISession } from "@vrobots/user";
 import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
+import SessionProvider from "./session/SessionProvider";
+
 export interface IAppProviderProps {
-  session: ISession
+  session?: ISession
   children: React.ReactNode;
 }
 
 const AppProvider: React.FC<IAppProviderProps> = ({ session, children }) => {
- console.log('Session in AppProvider:', session)
  const [isMounted, setIsMounted] = React.useState(false);
 
   React.useEffect(() => {
@@ -23,7 +24,9 @@ const AppProvider: React.FC<IAppProviderProps> = ({ session, children }) => {
 
   return (
     <ChakraProvider value={defaultSystem}>
-      <App session={session} children={children} />
+      <SessionProvider session={session}>
+        <App>{children}</App>
+      </SessionProvider>
     </ChakraProvider>
   )
 };
