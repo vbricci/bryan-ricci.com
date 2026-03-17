@@ -48,9 +48,7 @@ const SessionProvider: React.FC<{ session: ISession, children: React.ReactNode }
     setSession(incomingSession)
   }, [incomingSession])
 
-  React.useEffect(() => {
-    createAxiosInterceptors(router)(session)
-  }, [session, router])
+  createAxiosInterceptors(router)(session)
 
   return (
     <SessionContext.Provider value={provider}>

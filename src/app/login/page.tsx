@@ -5,6 +5,7 @@ import { ILoginCredentials } from "@vrobots/storybook"
 import axios, { AxiosError } from "axios"
 import { useRouter } from "next/navigation"
 import { useSession } from "../session/SessionProvider"
+import config from "@/config"
 
 const LoginPage = () => {
   const { ref: headerRef } = useHeader()
@@ -32,7 +33,7 @@ const LoginPage = () => {
       }
       else {
         setSession(response.data.session)
-        router.push('/dashboard')
+        router.push(config.state.authenticated.default_path)
       }
     }
     catch (err) {

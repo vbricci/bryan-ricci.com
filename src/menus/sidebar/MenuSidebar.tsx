@@ -67,8 +67,7 @@ export const MenuSidebarAuthenticatedDesktop = () => {
     <Box>
       <Menu
         menuItems={[
-          { label: 'Dashboard', value: '/dashboard' },
-          { label: 'Timeline', value: '/timeline/edit' },
+          { label: 'Timeline', value: '/timeline' },
           { label: 'Journal', value: '/journal' },
           { label: 'Blog', value: '/blog' },
           { label: 'Files', value: '/files' },

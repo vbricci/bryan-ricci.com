@@ -1,6 +1,6 @@
 
 import { useSession } from '@/app/session/SessionProvider'
-import { IFile } from '@vrobots/file'
+import { IFile, TFilePermission } from '@vrobots/file'
 import { useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 
@@ -9,7 +9,7 @@ const useFileUpload = () => {
   const router = useRouter()
   return {
     upload: useCallback(
-      (file: File, callbackPercentage?: (percent: number) => void) => new Promise((resolve, reject) => {
+      (file: File, permission: TFilePermission, callbackPercentage?: (percent: number) => void) => new Promise((resolve, reject) => {
         const data = new FormData()
         const request = new XMLHttpRequest()
       
@@ -33,7 +33,7 @@ const useFileUpload = () => {
         })
       
         request.responseType = 'json'
-        request.open('post', process.env.NEXT_PUBLIC_API_HOST_FILE + `/api/v1/file/upload`) 
+        request.open('post', process.env.NEXT_PUBLIC_API_HOST_FILE + `/api/v1/file/upload/${permission}`) 
         request.setRequestHeader('Authorization', `Bearer ${token}`)
         request.send(data)
       }), 
