@@ -20,7 +20,7 @@ export const MenuSidebarUnauthenticatedMobile = () => {
     <Box>
       <Menu
         menuItems={[
-          { label: 'Resume', value: '/resume.pdf' },
+          { label: 'Login', value: '/login' },
         ]}
         onClick={handleMenuClick}
         selected={selected}

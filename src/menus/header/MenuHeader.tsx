@@ -19,14 +19,6 @@ export const MenuHeaderUnauthenticatedDesktop = () => {
     <HStack gap={20}>
       <Link
         as={NextLink}
-        href="/resume.pdf"
-        style={{ textDecoration: 'none' }}
-        colorPalette={'cyan'}
-        >
-        Resume
-      </Link>
-      <Link
-        as={NextLink}
         href="/login"
         style={{ textDecoration: 'none' }}
         colorPalette={'cyan'}
