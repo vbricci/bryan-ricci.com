@@ -20,6 +20,7 @@ const App = ({ children }: IAppProps) => {
     <ColorModeProvider
       attribute="class"
       enableSystem={false}
+      defaultTheme={'dark'}
     >
       <Toaster />
       <HeaderProvider

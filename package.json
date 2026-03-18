@@ -14,10 +14,10 @@
     "@chakra-ui/react": "^3.34.0",
     "@emotion/react": "^11.14.0",
     "@tanstack/react-virtual": "^3.13.21",
-    "@vrobots/storybook": "^0.1.71",
+    "@vrobots/storybook": "^0.1.72",
     "axios": "^1.13.6",
     "motion": "^12.34.3",
-    "next": "16.1.6",
+    "next": "^16.1.7",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-hook-form": "^7.71.2"
