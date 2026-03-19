@@ -2,7 +2,7 @@
 'use client'
 
 import useFileUpload from "@/hooks/useFileUpload";
-import { Box, Button, Card, createListCollection, DatePicker, Field, Image, Input, Listbox, NativeSelect, Popover, Portal, Stack, Textarea, useFilter, useListbox, useLiveRef } from "@chakra-ui/react";
+import { Box, Button, Card, createListCollection, DatePicker, Field, Input, Listbox, NativeSelect, Popover, Portal, Stack, Textarea, useFilter, useListbox, useLiveRef } from "@chakra-ui/react";
 import { MdEditCalendar } from "react-icons/md"
 import { TFilePermission } from "@vrobots/file";
 import { Form, toaster } from "@vrobots/storybook";
@@ -18,6 +18,7 @@ import { type VirtualItem, useVirtualizer } from "@tanstack/react-virtual"
 import { ITimelineItem, ITimelineMedia, TTimelineItemDateType, } from "@vrobots/writing"
 import config from "@/config";
 import { useTimelineItem } from "./TimelineItem";
+import TimelineMedia from "./TimelineMedia";
 
 export interface ITimelineFormProps {
   timelineItem?: ITimelineItem
@@ -141,7 +142,7 @@ const TimelineForm = ({ timelineItem }: ITimelineFormProps) => {
       }))
       const uploadedFiles = await Promise.all(uploadPromises)
       return uploadedFiles.map((file: any) => ({
-        type: file.mimetype.startsWith('image') ? 'image' : file.mimetype.startsWith('video') ? 'video' : 'document',
+        type: file.mimetype.startsWith('image') ? 'image' : file.mimetype.startsWith('video') ? 'video' : file.mimetype.startsWith('audio') ? 'audio' : 'document',
         src: `/api/v1/file/${file._id}`,
         alt: file.filename,
       } as ITimelineMedia)) as ITimelineMedia[]
@@ -191,6 +192,15 @@ const TimelineForm = ({ timelineItem }: ITimelineFormProps) => {
     if (timelineItem) {
       setValue('icon', timelineItem.icon as any)
       onDateTimeChangeInitial({ value: timelineItem.date as CalendarDateTime[] })
+      console.log(timelineItem.media[0]?.type)
+      setMediaType(
+        timelineItem.media[0]?.type === 'image'
+          ? 'image/*' : timelineItem.media[0]?.type === 'video'
+            ? 'video/*' : timelineItem.media[0]?.type === 'audio'
+              ? 'audio/*' : timelineItem.media[0]?.type === 'document'
+                ? 'application/pdf'
+                : void 0
+      )
     }
   }, [timelineItem])
 
@@ -421,28 +431,8 @@ const TimelineForm = ({ timelineItem }: ITimelineFormProps) => {
                     multiple={mediaType === 'image/*'}
                   />
 
-                  {!!timelineItem && timelineItem.media.map((media, key) => {
-                    if (media.type.includes('image')) {
-                      return <Image
-                        key={'uploaded-image-' + key}
-                        src={media.src}
-                        alt={media.alt}
-                      />
-                    }
-                    else if (media.type.includes('video')) {
-                      return <Box key={'uploaded-video-' + key}>
-                        <video controls width="100%">
-                          <source src={media.src} type="video/mp4" />
-                          Your browser does not support the video tag.
-                        </video>
-                      </Box>
-                    }
-                    else {
-                      return <Box key={'uploaded-document-' + key}>
-                        <a href={media.src} target="_blank" rel="noopener noreferrer">{media.alt || 'View Document'}</a>
-                      </Box>
-                    }
-                  })}
+                  <TimelineMedia media={timelineItem?.media ?? []} />
+                  
                 </Field.Root>
               )
             }
@@ -454,158 +444,158 @@ const TimelineForm = ({ timelineItem }: ITimelineFormProps) => {
           </Button>
         </Box>
       </Card.Body>
-    </Card.Root>
-  );
+        </Card.Root>
+        );
 }
 
 const format = (dateType: TTimelineItemDateType) => (date: DateValue) => {
   const day = date.day.toString().padStart(2, "0")
-  const month = date.month.toString().padStart(2, "0")
-  const year = date.year.toString()
-  if (dateType === 'month+year') {
+        const month = date.month.toString().padStart(2, "0")
+        const year = date.year.toString()
+        if (dateType === 'month+year') {
     return `${month}/${year}`
   }
-  return `${month}/${day}/${year}`
+        return `${month}/${day}/${year}`
 }
 
 const parse = (dateType: TTimelineItemDateType) => (string: string) => {
   if (dateType === 'month+year') {
-    const fullRegex = /^(\d{1,2})\/(\d{4})$/
-    const fullMatch = string.match(fullRegex)
-    if (fullMatch) {
+    const fullRegex = /^(\d{1, 2})\/(\d{4})$/
+        const fullMatch = string.match(fullRegex)
+        if (fullMatch) {
       const [, month, year] = fullMatch.map(Number)
-      return new CalendarDate(year, month, 1)
+        return new CalendarDate(year, month, 1)
     }
   }
 }
 
-const dateFormat = {
-  'month+year': 'mm/yyyy',
-  'date': 'dd/mm/yyyy',
-  'date+time': 'dd/mm/yyyy HH:MM',
+        const dateFormat = {
+          'month+year': 'mm/yyyy',
+        'date': 'dd/mm/yyyy',
+        'date+time': 'dd/mm/yyyy HH:MM',
 }
 
-export const formatDateTime = new DateFormatter("en-US", {
-  month: "short",
-  day: "numeric",
-  year: "numeric",
-  hour: "numeric",
-  minute: "2-digit",
+        export const formatDateTime = new DateFormatter("en-US", {
+          month: "short",
+        day: "numeric",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
 })
 
-export const formatDate = new DateFormatter("en-US", {
-  month: "short",
-  day: "numeric",
-  year: "numeric",
+        export const formatDate = new DateFormatter("en-US", {
+          month: "short",
+        day: "numeric",
+        year: "numeric",
 })
 
-export const formatDateMonthYear = new DateFormatter("en-US", {
-  month: "short",
-  day: "numeric",
-  year: "numeric",
+        export const formatDateMonthYear = new DateFormatter("en-US", {
+          month: "short",
+        day: "numeric",
+        year: "numeric",
 })
 
-interface ScrollToIndexDetails {
-  index: number
+        interface ScrollToIndexDetails {
+          index: number
   getElement: () => HTMLElement | null
-  immediate?: boolean
+        immediate?: boolean
 }
 
-function useListboxVirtualizer(props: { count: number }) {
+        function useListboxVirtualizer(props: {count: number }) {
   const scrollRef = React.useRef<HTMLDivElement | null>(null)
-  const scrollTimeoutRef = React.useRef<NodeJS.Timeout | null>(null)
+        const scrollTimeoutRef = React.useRef<NodeJS.Timeout | null>(null)
 
   const clearScrollTimeout = () => {
     if (scrollTimeoutRef.current) {
-      clearTimeout(scrollTimeoutRef.current)
+          clearTimeout(scrollTimeoutRef.current)
       scrollTimeoutRef.current = null
     }
   }
 
-  const virtualizer = useVirtualizer({
-    count: props.count,
+        const virtualizer = useVirtualizer({
+          count: props.count,
     getScrollElement: () => scrollRef.current,
     estimateSize: () => 32,
-    overscan: 10,
+        overscan: 10,
   })
 
-  const virtualizerRef = useLiveRef(virtualizer)
+        const virtualizerRef = useLiveRef(virtualizer)
 
   const scrollToIndexFn = (details: ScrollToIndexDetails) => {
-    clearScrollTimeout()
+          clearScrollTimeout()
 
     const scrollToIndex = () => {
       const virtualizer = virtualizerRef.current
-      const virtualItems = virtualizer.getVirtualItems()
-      const virtualItem = virtualItems.find(
+        const virtualItems = virtualizer.getVirtualItems()
+        const virtualItem = virtualItems.find(
         (item) => item.index === details.index,
-      )
+        )
 
-      if (virtualItem) {
+        if (virtualItem) {
         const element = details.getElement()
-        element?.scrollIntoView({ block: "nearest" })
+        element?.scrollIntoView({block: "nearest" })
         clearScrollTimeout()
         return
       }
 
-      // Scroll towards the target index
-      virtualizer.scrollToIndex(details.index)
+        // Scroll towards the target index
+        virtualizer.scrollToIndex(details.index)
 
-      // Continue scrolling in intervals until we reach the target
-      if (!details.immediate) {
-        scrollTimeoutRef.current = setTimeout(scrollToIndex, 16) // ~60fps
-      }
+        // Continue scrolling in intervals until we reach the target
+        if (!details.immediate) {
+          scrollTimeoutRef.current = setTimeout(scrollToIndex, 16) // ~60fps
+        }
     }
 
-    scrollToIndex()
+        scrollToIndex()
   }
 
   // Cleanup timeout on unmount
   React.useEffect(() => clearScrollTimeout, [])
 
-  const totalSize = virtualizer.getTotalSize()
+        const totalSize = virtualizer.getTotalSize()
 
-  return {
-    scrollRef,
-    scrollToIndexFn,
-    totalSize,
-    virtualItems: virtualizer.getVirtualItems(),
-    getViewportProps(
-      props: React.ComponentProps<"div"> = {},
-    ): React.ComponentProps<"div"> {
+        return {
+          scrollRef,
+          scrollToIndexFn,
+          totalSize,
+          virtualItems: virtualizer.getVirtualItems(),
+        getViewportProps(
+        props: React.ComponentProps<"div"> = { },
+        ): React.ComponentProps<"div"> {
       return {
-        ...props,
-        style: {
+          ...props,
+          style: {
           ...props.style,
           height: `${totalSize}px`,
-          width: "100%",
-          position: "relative",
+        width: "100%",
+        position: "relative",
         },
       }
     },
-    getItemProps(
-      props: React.ComponentProps<"div"> & { virtualItem: VirtualItem },
-    ): React.ComponentProps<"div"> {
-      const { virtualItem, ...rest } = props
-      return {
-        ...rest,
-        "aria-posinset": virtualItem.index + 1,
+        getItemProps(
+        props: React.ComponentProps<"div"> & {virtualItem: VirtualItem },
+        ): React.ComponentProps<"div"> {
+      const {virtualItem, ...rest } = props
+        return {
+          ...rest,
+          "aria-posinset": virtualItem.index + 1,
         "aria-setsize": totalSize,
         style: {
           position: "absolute",
-          top: 0,
-          left: 0,
-          width: "100%",
-          whiteSpace: "nowrap",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          ...rest.style,
-          height: `${virtualItem.size}px`,
-          transform: `translateY(${virtualItem.start}px)`,
+        top: 0,
+        left: 0,
+        width: "100%",
+        whiteSpace: "nowrap",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        ...rest.style,
+        height: `${virtualItem.size}px`,
+        transform: `translateY(${virtualItem.start}px)`,
         },
       }
     },
   }
 }
 
-export default TimelineForm;
+        export default TimelineForm;

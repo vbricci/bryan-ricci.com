@@ -16,7 +16,6 @@ const SecondFactorPage = () => {
 
   const handle2FactorAuth = async (auth: IAuth) => {
     // Handle 2-factor authentication logic here, such as sending the auth code to the server for verification
-    console.log("2-Factor Auth Code:", auth.authCode)
     try {
       const response = await axios({
         url: `/api/v1/user/${userId}/session/login/second-factor`,

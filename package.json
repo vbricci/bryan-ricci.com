@@ -36,7 +36,7 @@
     "@vitest/coverage-v8": "^4.0.18",
     "@vrobots/file": "^0.1.5",
     "@vrobots/user": "^0.1.15",
-    "@vrobots/writing": "^0.1.7",
+    "@vrobots/writing": "^0.1.8",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "eslint-plugin-storybook": "^10.2.16",
