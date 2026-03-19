@@ -20,10 +20,16 @@ export default async function getSession(): Promise<ISession | undefined> {
   const headersList = await headers();
   const userAgent = headersList.get('user-agent');
 
+  // Check x-forwarded-for first, and take the first IP in the list
+  const forwardedFor = headersList.get('x-forwarded-for');
+  const realIp = headersList.get('x-real-ip');
+  const ip = forwardedFor ? forwardedFor.split(',')[0] : realIp ?? 'Unknown';
+
   const session = await axios.get(process.env.NEXT_PUBLIC_API_HOST + '/api/v1/user/session', {
     method: 'GET',
     headers: {
       'User-Agent': userAgent || '',
+      'X-Forwarded-For': ip,
     }
   })
 
