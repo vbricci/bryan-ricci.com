@@ -3,19 +3,22 @@ import { Timeline as TimelineStorybook, toaster } from '@vrobots/storybook'
 import { formatDate, formatDateMonthYear, formatDateTime } from "./TimelineForm";
 import { CalendarDate, CalendarDateTime, getLocalTimeZone } from "@internationalized/date";
 import TimelineItem from "./TimelineItem";
-import { Box, Button, CloseButton, Dialog, Image, Portal, Text, useDisclosure } from "@chakra-ui/react";
+import { Box, Button, Carousel, CloseButton, Dialog, IconButton, Image, Portal, Text, useDisclosure } from "@chakra-ui/react";
 import { ITimeline, ITimelineItem } from "@vrobots/writing";
 import axios, { AxiosError } from "axios";
 import { useSession } from "@/app/session/SessionProvider";
+import { LuChevronLeft, LuChevronRight } from "react-icons/lu"
 
-export const useTimeline = () => {
+type TProtectedTimeline = 'protected' | 'restricted'
+
+export const useTimeline = (protection?: TProtectedTimeline) => {
   const [timeline, setTimeline] = React.useState<ITimeline>()
 
-  const getTimeline = React.useCallback(async () => {
+  const getTimeline = React.useCallback(async (protection?: TProtectedTimeline) => {
     try {
       const { data: timeline } = await axios({
         method: 'GET',
-        url: '/api/v1/writing/timeline/master',
+        url: `/api/v1/writing/timeline/master${protection ? `/${protection}` : ''}`,
       })
       const items = timeline?.items?.map((item: ITimelineItem) => ({
         ...item,
@@ -37,8 +40,8 @@ export const useTimeline = () => {
   }, [])
 
   React.useEffect(() => {
-    getTimeline()
-  }, [])
+    getTimeline(protection)
+  }, [protection])
 
   return {
     timeline,
@@ -67,7 +70,7 @@ export const formatTimelineDate = (lineItem: ITimelineItem) => {
   return formattedDate
 }
 
-const makeTimelineItem = (showOwnerOptions: boolean, onClick: (src: string, title: string, description?: string) => void, onRefresh?: () => Promise<void>) => (timelineItem: ITimelineItem) => {
+const makeTimelineItem = (showOwnerOptions: boolean, onClick: (item: ITimelineItem) => void, onRefresh?: () => Promise<void>) => (timelineItem: ITimelineItem) => {
   const formattedDate = formatTimelineDate(timelineItem);
   const splitDate = formattedDate.split(' ')
   const date = timelineItem.dateType === 'month+year'
@@ -76,13 +79,9 @@ const makeTimelineItem = (showOwnerOptions: boolean, onClick: (src: string, titl
   return {
     date,
     component: <TimelineItem
-      _id={timelineItem._id as string}
-      title={timelineItem.title}
-      description={timelineItem.description}
-      src={timelineItem.media[0].src}
-      alt={timelineItem.media[0].alt}
+      item={timelineItem}
       showOwnerOptions={showOwnerOptions}
-      click={onClick}
+      onClick={onClick}
       onRefresh={onRefresh}
     />,
     icon: timelineItem.icon,
@@ -98,16 +97,18 @@ export interface ITimelineProps {
 const Timeline = ({ timeline, onRefresh, children = null }: ITimelineProps) => {
   const { session } = useSession()
   const { open, onOpen, onClose } = useDisclosure()
-  const [selected, setSelected] = React.useState<{ src: string, title: string, description?: string }>({ src: '', title: '' })
+  const [selected, setSelected] = React.useState<ITimelineItem>()
   const showOwnerOptions = timeline?.user?._id === session.user?._id
-  const handleTimelineItemClick = (src: string, title: string, description?: string) => {
-    setSelected({ src, title, description })
+  const cover = selected?.media[0]
+
+  const handleTimelineItemClick = (item: ITimelineItem) => {
+    setSelected(item)
     onOpen()
   }
 
   const handleClose = () => {
     onClose()
-    setTimeout(() => setSelected({ src: '', title: '' }), 300) // Delay clearing the image until after the dialog has closed
+    setTimeout(() => setSelected(void 0), 300) // Delay clearing the image until after the dialog has closed
   }
 
   return (
@@ -134,22 +135,83 @@ const Timeline = ({ timeline, onRefresh, children = null }: ITimelineProps) => {
           />
         </Box>
       </Box>
-      <Dialog.Root open={open} onOpenChange={handleClose}>
+      <Dialog.Root open={open} onOpenChange={handleClose} size={'lg'}>
         <Portal>
           <Dialog.Backdrop />
           <Dialog.Positioner>
             <Dialog.Content>
               <Dialog.Header>
-                <Dialog.Title>{selected.title}</Dialog.Title>
+                <Dialog.Title>{selected?.title}</Dialog.Title>
               </Dialog.Header>
               <Dialog.Body>
-                <Image
-                  src={selected.src || void 0}
-                  alt="Selected Timeline Image"
-                  width={'100%'}
-                />
                 {
-                  !!selected.description && (
+                  !!cover && cover.type.includes('image')
+                    ? (
+                      <Carousel.Root slideCount={selected?.media.length} gap="4">
+                        <Carousel.Control justifyContent="center" gap="4" width="full">
+                          <Carousel.PrevTrigger asChild>
+                            <IconButton size="xs" variant="outline">
+                              <LuChevronLeft />
+                            </IconButton>
+                          </Carousel.PrevTrigger>
+
+                          <Carousel.ItemGroup width="full">
+                            {selected?.media.map((item, index) => (
+                              <Carousel.Item key={index} index={index}>
+                                <Image
+                                  aspectRatio="16/9"
+                                  src={item.src}
+                                  alt={item.alt}
+                                  w="100%"
+                                  h="100%"
+                                  objectFit="cover"
+                                />
+                              </Carousel.Item>
+                            ))}
+                          </Carousel.ItemGroup>
+
+                          <Carousel.NextTrigger asChild>
+                            <IconButton size="xs" variant="outline">
+                              <LuChevronRight />
+                            </IconButton>
+                          </Carousel.NextTrigger>
+                        </Carousel.Control>
+
+                        <Carousel.IndicatorGroup>
+                          {selected?.media.map((item, index) => (
+                            <Carousel.Indicator
+                              key={index}
+                              index={index}
+                              unstyled
+                              _current={{
+                                outline: "2px solid currentColor",
+                                outlineOffset: "2px",
+                              }}
+                            >
+                              <Image
+                                w="20"
+                                aspectRatio="16/9"
+                                src={item.src}
+                                alt={item.alt}
+                                objectFit="cover"
+                              />
+                            </Carousel.Indicator>
+                          ))}
+                        </Carousel.IndicatorGroup>
+                      </Carousel.Root>
+                    ) : cover?.type.includes('video')
+                      ? (
+                        <video controls width="100%" height="100%" autoPlay>
+                          <source src={cover.src} type="video/mp4" />
+                          Your browser does not support the video tag.
+                        </video>
+                      ) : cover?.type.includes('document')
+                        ? (
+                          <a href={cover.src} target="_blank" rel="noopener noreferrer">{cover.alt || 'View Document'}</a>
+                        ) : null
+                }
+                {
+                  !!selected?.description && (
                     <Text mt={4}>{selected.description}</Text>
                   )
                 }

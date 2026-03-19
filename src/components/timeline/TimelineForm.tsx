@@ -15,18 +15,19 @@ import { LuChevronDown } from "react-icons/lu"
 import { CalendarDate, CalendarDateTime, DateFormatter, getLocalTimeZone } from "@internationalized/date"
 import type { DateValue } from "@chakra-ui/react"
 import { type VirtualItem, useVirtualizer } from "@tanstack/react-virtual"
-import { ITimelineItem, ITimelineMedia, TTimelineDateType, } from "@vrobots/writing"
-import axios from 'axios'
+import { ITimelineItem, ITimelineMedia, TTimelineItemDateType, } from "@vrobots/writing"
 import config from "@/config";
-import { formatTimelineDate } from "./Timeline";
 import { useTimelineItem } from "./TimelineItem";
 
 export interface ITimelineFormProps {
   timelineItem?: ITimelineItem
 }
 
+export type TMediaAllowed = 'image/*' | 'audio/*' | 'video/*' | 'application/pdf'
+
 const TimelineForm = ({ timelineItem }: ITimelineFormProps) => {
   const [files, setFiles] = React.useState<File[]>([])
+  const [mediaType, setMediaType] = React.useState<TMediaAllowed>()
   const [uploadPercentages, setUploadPercentages] = React.useState<number[]>([])
   const router = useRouter()
   const fileUpload = useFileUpload()
@@ -123,6 +124,10 @@ const TimelineForm = ({ timelineItem }: ITimelineFormProps) => {
   const onTimeChange = (date: CalendarDateTime) => (e: React.ChangeEvent<HTMLInputElement>) => {
     const [hours, minutes] = e.currentTarget.value.split(":").map(Number)
     setValue('date', [date.set({ hour: hours, minute: minutes })] as any)
+  }
+
+  const handleChangeMediaType = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setMediaType(event.target.value as TMediaAllowed)
   }
 
   const handleUpload = async (permission: TFilePermission) => {
@@ -250,8 +255,8 @@ const TimelineForm = ({ timelineItem }: ITimelineFormProps) => {
                     value={selectedDate}
                     onValueChange={onDateTimeChange}
                     closeOnSelect={selectedDateType !== 'date+time'}
-                    format={format(selectedDateType as TTimelineDateType)}
-                    parse={parse(selectedDateType as TTimelineDateType)}
+                    format={format(selectedDateType as TTimelineItemDateType)}
+                    parse={parse(selectedDateType as TTimelineItemDateType)}
                     invalid={!!errors.date}
                     defaultView={'month'}
                     minView={selectedDateType === 'month+year' ? 'month' : 'day'}
@@ -382,22 +387,65 @@ const TimelineForm = ({ timelineItem }: ITimelineFormProps) => {
               <Textarea placeholder="Start typing..." variant="subtle" {...register('description')} />
             </Field.Root>
 
-            <Field.Root>
-              <Field.Label>Cover Image</Field.Label>
-              <Form.FileUploader
-                onFilesSelected={handleFilesSelected}
-                uploadPercentages={uploadPercentages}
-                width={'100%'}
-              />
-
-              {!!timelineItem && timelineItem.media.map((media, key) => (
-                <Image
-                  key={'uploaded-image-' + key}
-                  src={media.src}
-                  alt={media.alt}
-                />
-              ))}
+            <Field.Root
+              required
+            >
+              <Field.Label>
+                Media Type
+                <Field.RequiredIndicator />
+              </Field.Label>
+              <NativeSelect.Root size="sm">
+                <NativeSelect.Field
+                  placeholder="Select an option"
+                  value={mediaType}
+                  onChange={handleChangeMediaType}
+                >
+                  <option value="image/*">Images</option>
+                  <option value="video/*">Video</option>
+                  <option value="audio/*">Audio</option>
+                  <option value="application/pdf">PDF</option>
+                </NativeSelect.Field>
+                <NativeSelect.Indicator />
+              </NativeSelect.Root>
             </Field.Root>
+
+            {
+              !!mediaType && (
+                <Field.Root>
+                  <Field.Label>Media</Field.Label>
+                  <Form.FileUploader
+                    onFilesSelected={handleFilesSelected}
+                    uploadPercentages={uploadPercentages}
+                    accept={mediaType}
+                    width={'100%'}
+                    multiple={mediaType === 'image/*'}
+                  />
+
+                  {!!timelineItem && timelineItem.media.map((media, key) => {
+                    if (media.type.includes('image')) {
+                      return <Image
+                        key={'uploaded-image-' + key}
+                        src={media.src}
+                        alt={media.alt}
+                      />
+                    }
+                    else if (media.type.includes('video')) {
+                      return <Box key={'uploaded-video-' + key}>
+                        <video controls width="100%">
+                          <source src={media.src} type="video/mp4" />
+                          Your browser does not support the video tag.
+                        </video>
+                      </Box>
+                    }
+                    else {
+                      return <Box key={'uploaded-document-' + key}>
+                        <a href={media.src} target="_blank" rel="noopener noreferrer">{media.alt || 'View Document'}</a>
+                      </Box>
+                    }
+                  })}
+                </Field.Root>
+              )
+            }
           </Stack>
 
 
@@ -410,7 +458,7 @@ const TimelineForm = ({ timelineItem }: ITimelineFormProps) => {
   );
 }
 
-const format = (dateType: TTimelineDateType) => (date: DateValue) => {
+const format = (dateType: TTimelineItemDateType) => (date: DateValue) => {
   const day = date.day.toString().padStart(2, "0")
   const month = date.month.toString().padStart(2, "0")
   const year = date.year.toString()
@@ -420,7 +468,7 @@ const format = (dateType: TTimelineDateType) => (date: DateValue) => {
   return `${month}/${day}/${year}`
 }
 
-const parse = (dateType: TTimelineDateType) => (string: string) => {
+const parse = (dateType: TTimelineItemDateType) => (string: string) => {
   if (dateType === 'month+year') {
     const fullRegex = /^(\d{1,2})\/(\d{4})$/
     const fullMatch = string.match(fullRegex)

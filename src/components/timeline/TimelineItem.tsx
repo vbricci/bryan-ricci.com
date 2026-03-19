@@ -1,5 +1,5 @@
-import { Box, HStack, IconButton, Image, ImageProps, Text } from "@chakra-ui/react";
-import { toaster, Tooltip } from "@vrobots/storybook";
+import { Box, HStack, IconButton, Image, ImageProps, Text, useDisclosure } from "@chakra-ui/react";
+import { toaster, Tooltip, VerifyAction } from "@vrobots/storybook";
 import { ITimelineItem } from "@vrobots/writing";
 import axios, { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
@@ -56,7 +56,7 @@ export const useTimelineItem = (_id?: string) => {
       })
     }
   }, [])
-  
+
   const deleteTimelineItem = React.useCallback(async (_id: string) => {
     try {
       const { data: message } = await axios({
@@ -123,23 +123,33 @@ export const useTimelineItem = (_id?: string) => {
   }
 }
 
-export interface ITimelineItemProps extends ImageProps {
-  _id: string
-  title: string
-  description?: string
+export interface ITimelineItemProps {
+  item: ITimelineItem
   showOwnerOptions?: boolean
-  click: (src: string, title: string, description?: string) => void;
+  onClick: (item: ITimelineItem) => void;
   onRefresh?: () => Promise<void>
 }
 
-const TimelineItem = ({ _id, title, description, showOwnerOptions, click, onRefresh, ...props }: ITimelineItemProps) => {
+const TimelineItem = ({ item, showOwnerOptions, onClick, onRefresh }: ITimelineItemProps) => {
   const { deleteTimelineItem } = useTimelineItem()
+  const [markedForDeletion, setMarkedForDeletion] = React.useState<string>('')
   const router = useRouter()
+
+  
+  const cover = item.media[0]
+  console.log(cover)
+
   const handleOpenDialog = () => {
-    click(props.src as string, title, description);
+    onClick(item);
   };
-  const handleDeleteTimelineItem = async (_id: string) => {
-    await deleteTimelineItem(_id)
+
+  const handleVerifyActionDeleteTimelineItem = (_id: string) => {
+    setMarkedForDeletion(_id)
+  }
+
+  const handleDeleteTimelineItem = async () => {
+    await deleteTimelineItem(markedForDeletion)
+    setMarkedForDeletion('')
     !!onRefresh && await onRefresh()
   }
 
@@ -152,7 +162,7 @@ const TimelineItem = ({ _id, title, description, showOwnerOptions, click, onRefr
               size={'xs'}
               colorPalette={'gray'}
               variant={'subtle'}
-              onClick={() => router.push(`/timeline/item/${_id}/edit`)}
+              onClick={() => router.push(`/timeline/item/${item._id}/edit`)}
             >
               <MdEdit />
             </IconButton>
@@ -162,25 +172,54 @@ const TimelineItem = ({ _id, title, description, showOwnerOptions, click, onRefr
               size={'xs'}
               colorPalette={'red'}
               variant={'subtle'}
-              onClick={() => handleDeleteTimelineItem(_id)}
+              onClick={() => handleVerifyActionDeleteTimelineItem(item._id as string)}
             >
               <MdDelete />
             </IconButton>
           </Tooltip>
         </HStack>
       )}
-      <Text fontSize={'xl'} fontWeight={'bold'} mb={2} cursor={'pointer'} onClick={handleOpenDialog}>{title}</Text>
-      <Image
-        {...props}
-        width={200}
-        height={200}
-        borderRadius={'full'}
-        margin={{ base: 'auto', md: 0 }}
-        position={'relative'}
-        left={{ base: -4, md: 0 }}
-        right={0}
-        cursor={'pointer'}
-        onClick={handleOpenDialog}
+      <Text fontSize={'xl'} fontWeight={'bold'} mb={2} cursor={'pointer'} onClick={handleOpenDialog}>{item.title}</Text>
+      {
+        !!cover && cover.type.includes('image')
+          ? (
+            <Image
+              width={200}
+              height={200}
+              borderRadius={'full'}
+              margin={{ base: 'auto', md: 0 }}
+              position={'relative'}
+              left={{ base: -4, md: 0 }}
+              right={0}
+              cursor={'pointer'}
+              onClick={handleOpenDialog}
+              src={cover.src}
+              alt={cover.alt || 'Timeline Item Media'}
+            />
+          ) : cover?.type.includes('video')
+            ? (
+              <Box width={200} height={200} bgColor={'gray.800'} borderRadius={'full'} overflow={'hidden'} position={'relative'} left={{ base: -4, md: 0 }} right={0} cursor={'pointer'} onClick={handleOpenDialog}>
+                <Box width={400} height={400}>
+
+                <video style={{position: 'relative'}} controls width="100%" muted autoPlay loop>
+                  <source src={cover.src} type="video/mp4"/>
+                  Your browser does not support the video tag.
+                </video>
+                </Box>
+              </Box>
+            ) : cover?.type.includes('document')
+              ? (
+                <Box width={200} height={200} position={'relative'} left={{ base: -4, md: 0 }} right={0} cursor={'pointer'} onClick={handleOpenDialog}>
+                  <a href={cover.src} target="_blank" rel="noopener noreferrer">{cover.alt || 'View Document'}</a>
+                </Box>
+              ) : null
+      }
+      <VerifyAction
+        isOpen={!!markedForDeletion}
+        heading={'Are you sure want to delete this timeline item?'}
+        subheading={`This will also delete all files associated with this item. This action can't be undone!`}
+        onCancel={() => setMarkedForDeletion('')}
+        onProceed={handleDeleteTimelineItem}
       />
     </Box>
   );
