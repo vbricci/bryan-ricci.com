@@ -135,9 +135,7 @@ const TimelineItem = ({ item, showOwnerOptions, onClick, onRefresh }: ITimelineI
   const [markedForDeletion, setMarkedForDeletion] = React.useState<string>('')
   const router = useRouter()
 
-  
   const cover = item.media[0]
-  console.log(cover)
 
   const handleOpenDialog = () => {
     onClick(item);
@@ -201,18 +199,36 @@ const TimelineItem = ({ item, showOwnerOptions, onClick, onRefresh }: ITimelineI
               <Box width={200} height={200} bgColor={'gray.800'} borderRadius={'full'} overflow={'hidden'} position={'relative'} left={{ base: -4, md: 0 }} right={0} cursor={'pointer'} onClick={handleOpenDialog}>
                 <Box width={400} height={400}>
 
-                <video style={{position: 'relative'}} controls width="100%" muted autoPlay loop>
-                  <source src={cover.src} type="video/mp4"/>
-                  Your browser does not support the video tag.
-                </video>
+                  <video style={{ position: 'relative' }} controls width="100%" muted autoPlay loop>
+                    <source src={cover.src} type="video/mp4" />
+                    Your browser does not support the video tag.
+                  </video>
                 </Box>
               </Box>
             ) : cover?.type.includes('document')
               ? (
-                <Box width={200} height={200} position={'relative'} left={{ base: -4, md: 0 }} right={0} cursor={'pointer'} onClick={handleOpenDialog}>
-                  <a href={cover.src} target="_blank" rel="noopener noreferrer">{cover.alt || 'View Document'}</a>
+                <Box width={200} height={200} bgColor={'gray.800'} borderRadius={'full'} overflow={'hidden'} position={'relative'} left={{ base: -4, md: 0 }} right={0} cursor={'pointer'} onClick={handleOpenDialog} display={'block'}>
+                  <Image
+                    height={100}
+                    margin={'auto'}
+                    mt={50}
+                    src={'/pdf_icon.svg'}
+                    alt={cover.alt || 'Timeline Item Media'}
+                  />
                 </Box>
-              ) : null
+              ) : cover?.type.includes('audio')
+                ? (
+                  <Box width={200} height={200} bgColor={'gray.800'} borderRadius={'full'} overflow={'hidden'} position={'relative'} left={{ base: -4, md: 0 }} right={0} cursor={'pointer'} onClick={handleOpenDialog} display={'block'}>
+                    <Image
+                      height={100}
+                      margin={'auto'}
+                      mt={50}
+                      src={'/audio_icon.png'}
+                      alt={cover.alt || 'Timeline Item Media'}
+                    />
+                  </Box>
+                )
+                : null
       }
       <VerifyAction
         isOpen={!!markedForDeletion}
