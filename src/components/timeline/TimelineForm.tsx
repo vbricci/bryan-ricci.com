@@ -192,7 +192,6 @@ const TimelineForm = ({ timelineItem }: ITimelineFormProps) => {
     if (timelineItem) {
       setValue('icon', timelineItem.icon as any)
       onDateTimeChangeInitial({ value: timelineItem.date as CalendarDateTime[] })
-      console.log(timelineItem.media[0]?.type)
       setMediaType(
         timelineItem.media[0]?.type === 'image'
           ? 'image/*' : timelineItem.media[0]?.type === 'video'
@@ -431,8 +430,7 @@ const TimelineForm = ({ timelineItem }: ITimelineFormProps) => {
                     multiple={mediaType === 'image/*'}
                   />
 
-                  <TimelineMedia media={timelineItem?.media ?? []} />
-                  
+                  { files.length === 0 && <TimelineMedia media={timelineItem?.media ?? []} /> }
                 </Field.Root>
               )
             }

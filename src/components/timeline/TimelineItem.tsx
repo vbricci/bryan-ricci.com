@@ -216,7 +216,19 @@ const TimelineItem = ({ item, showOwnerOptions, onClick, onRefresh }: ITimelineI
                     alt={cover.alt || 'Timeline Item Media'}
                   />
                 </Box>
-              ) : null
+              ) : cover?.type.includes('audio')
+                ? (
+                  <Box width={200} height={200} bgColor={'gray.800'} borderRadius={'full'} overflow={'hidden'} position={'relative'} left={{ base: -4, md: 0 }} right={0} cursor={'pointer'} onClick={handleOpenDialog} display={'block'}>
+                    <Image
+                      height={100}
+                      margin={'auto'}
+                      mt={50}
+                      src={'/audio_icon.png'}
+                      alt={cover.alt || 'Timeline Item Media'}
+                    />
+                  </Box>
+                )
+                : null
       }
       <VerifyAction
         isOpen={!!markedForDeletion}
