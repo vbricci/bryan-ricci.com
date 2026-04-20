@@ -1,4 +1,4 @@
-import { Box, HStack, IconButton, Image, ImageProps, Text, useDisclosure } from "@chakra-ui/react";
+import { Box, HStack, IconButton, Image, Text } from "@chakra-ui/react";
 import { toaster, Tooltip, VerifyAction } from "@vrobots/storybook";
 import { ITimelineItem } from "@vrobots/writing";
 import axios, { AxiosError } from "axios";
@@ -130,115 +130,189 @@ export interface ITimelineItemProps {
   onRefresh?: () => Promise<void>
 }
 
+interface IMediaFrameProps {
+  cover: ITimelineItem['media'][0]
+  onClick: () => void
+}
+
+const MediaFrame = ({ cover, onClick }: IMediaFrameProps) => {
+  const isImage = cover.type.includes('image')
+  const isVideo = cover.type.includes('video')
+  const isDocument = cover.type.includes('document')
+  const isAudio = cover.type.includes('audio')
+
+  if (!isImage && !isVideo && !isDocument && !isAudio) return null
+
+  return (
+    <Box
+      position={'relative'}
+      width={'100%'}
+      height={'160px'}
+      borderRadius={'16px 16px 0 0'}
+      overflow={'hidden'}
+      cursor={'pointer'}
+      onClick={onClick}
+      flexShrink={0}
+      bg={'neu.bg'}
+    >
+      {isImage && (
+        <Image
+          src={cover.src}
+          alt={cover.alt || 'Timeline Item Media'}
+          position={'absolute'}
+          top={0}
+          left={0}
+          right={0}
+          bottom={0}
+          width={'100%'}
+          height={'100%'}
+          objectFit={'cover'}
+          display={'block'}
+        />
+      )}
+      {isVideo && (
+        <video
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+          }}
+          muted
+          autoPlay
+          loop
+          playsInline
+        >
+          <source src={cover.src} type="video/mp4" />
+        </video>
+      )}
+      {(isDocument || isAudio) && (
+        <Image
+          src={isDocument ? '/pdf_icon.svg' : '/audio_icon.png'}
+          alt={cover.alt || (isDocument ? 'Document' : 'Audio')}
+          position={'absolute'}
+          top={'50%'}
+          left={'50%'}
+          transform={'translate(-50%, -50%)'}
+          width={'40%'}
+          height={'auto'}
+          objectFit={'contain'}
+        />
+      )}
+    </Box>
+  )
+}
+
 const TimelineItem = ({ item, showOwnerOptions, onClick, onRefresh }: ITimelineItemProps) => {
   const { deleteTimelineItem } = useTimelineItem()
   const [markedForDeletion, setMarkedForDeletion] = React.useState<string>('')
   const router = useRouter()
 
-  const cover = item.media[0]
+  const cover = item.media?.[0]
 
-  const handleOpenDialog = () => {
-    onClick(item);
-  };
-
-  const handleVerifyActionDeleteTimelineItem = (_id: string) => {
-    setMarkedForDeletion(_id)
-  }
+  const handleOpenDialog = () => onClick(item)
 
   const handleDeleteTimelineItem = async () => {
     await deleteTimelineItem(markedForDeletion)
     setMarkedForDeletion('')
-    !!onRefresh && await onRefresh()
+    await onRefresh?.()
   }
 
   return (
-    <Box>
-      {showOwnerOptions && (
-        <HStack gap={2}>
-          <Tooltip content={'Edit timeline item'}>
-            <IconButton
-              size={'xs'}
-              colorPalette={'gray'}
-              variant={'subtle'}
-              onClick={() => router.push(`/timeline/item/${item._id}/edit`)}
-            >
-              <MdEdit />
-            </IconButton>
-          </Tooltip>
-          <Tooltip content={'Delete timeline item'}>
-            <IconButton
-              size={'xs'}
-              colorPalette={'red'}
-              variant={'subtle'}
-              onClick={() => handleVerifyActionDeleteTimelineItem(item._id as string)}
-            >
-              <MdDelete />
-            </IconButton>
-          </Tooltip>
-        </HStack>
+    <Box
+      layerStyle={'neuRaised'}
+      display={'flex'}
+      flexDirection={'column'}
+      overflow={'hidden'}
+      width={'100%'}
+      maxWidth={'100%'}
+      minWidth={0}
+      transition={'transform 0.15s ease, box-shadow 0.2s ease'}
+      _hover={{ transform: 'translateY(-2px)' }}
+    >
+      {/* Media — full-width at the top, bleeds to card edge */}
+      {!!cover && (
+        <MediaFrame cover={cover} onClick={handleOpenDialog} />
       )}
-      <Text fontSize={'xl'} fontWeight={'bold'} mb={2} cursor={'pointer'} onClick={handleOpenDialog}>{item.title}</Text>
-      {
-        !!cover && cover.type.includes('image')
-          ? (
-            <Image
-              width={200}
-              height={200}
-              borderRadius={'full'}
-              margin={{ base: 'auto', md: 0 }}
-              position={'relative'}
-              left={{ base: -4, md: 0 }}
-              right={0}
-              cursor={'pointer'}
-              onClick={handleOpenDialog}
-              src={cover.src}
-              alt={cover.alt || 'Timeline Item Media'}
-            />
-          ) : cover?.type.includes('video')
-            ? (
-              <Box width={200} height={200} bgColor={'gray.800'} borderRadius={'full'} overflow={'hidden'} position={'relative'} left={{ base: -4, md: 0 }} right={0} cursor={'pointer'} onClick={handleOpenDialog}>
-                <Box width={400} height={400}>
 
-                  <video style={{ position: 'relative' }} controls width="100%" muted autoPlay loop>
-                    <source src={cover.src} type="video/mp4" />
-                    Your browser does not support the video tag.
-                  </video>
-                </Box>
-              </Box>
-            ) : cover?.type.includes('document')
-              ? (
-                <Box width={200} height={200} bgColor={'gray.800'} borderRadius={'full'} overflow={'hidden'} position={'relative'} left={{ base: -4, md: 0 }} right={0} cursor={'pointer'} onClick={handleOpenDialog} display={'block'}>
-                  <Image
-                    height={100}
-                    margin={'auto'}
-                    mt={50}
-                    src={'/pdf_icon.svg'}
-                    alt={cover.alt || 'Timeline Item Media'}
-                  />
-                </Box>
-              ) : cover?.type.includes('audio')
-                ? (
-                  <Box width={200} height={200} bgColor={'gray.800'} borderRadius={'full'} overflow={'hidden'} position={'relative'} left={{ base: -4, md: 0 }} right={0} cursor={'pointer'} onClick={handleOpenDialog} display={'block'}>
-                    <Image
-                      height={100}
-                      margin={'auto'}
-                      mt={50}
-                      src={'/audio_icon.png'}
-                      alt={cover.alt || 'Timeline Item Media'}
-                    />
-                  </Box>
-                )
-                : null
-      }
+      {/* Content */}
+      <Box p={4} flex={1} minW={0} minH={'100px'} overflow={'hidden'}>
+        {showOwnerOptions && (
+          <HStack gap={1} mb={2}>
+            <Tooltip content={'Edit timeline item'}>
+              <IconButton
+                size={'xs'}
+                variant={'ghost'}
+                aria-label={'Edit timeline item'}
+                onClick={() => router.push(`/timeline/item/${item._id}/edit`)}
+              >
+                <MdEdit />
+              </IconButton>
+            </Tooltip>
+            <Tooltip content={'Delete timeline item'}>
+              <IconButton
+                size={'xs'}
+                variant={'ghost'}
+                colorPalette={'red'}
+                aria-label={'Delete timeline item'}
+                onClick={() => setMarkedForDeletion(item._id as string)}
+              >
+                <MdDelete />
+              </IconButton>
+            </Tooltip>
+          </HStack>
+        )}
+
+        <Text
+          display={'block'}
+          width={'100%'}
+          maxWidth={'100%'}
+          overflow={'hidden'}
+          minW={0}
+          fontSize={'lg'}
+          fontWeight={'semibold'}
+          color={'neu.text'}
+          lineHeight={'short'}
+          cursor={'pointer'}
+          _hover={{ color: 'neu.accent' }}
+          transition={'color 0.15s ease'}
+          onClick={handleOpenDialog}
+          lineClamp={1}
+          overflowWrap={'anywhere'}
+          wordBreak={'break-word'}
+        >
+          {item.title}
+        </Text>
+
+        {!!item.description && (
+          <Text
+            display={'block'}
+            width={'100%'}
+            maxWidth={'100%'}
+            minW={0}
+            fontSize={'sm'}
+            color={'neu.muted'}
+            mt={1}
+            lineClamp={2}
+            overflowWrap={'anywhere'}
+            wordBreak={'break-word'}
+          >
+            {item.description}
+          </Text>
+        )}
+      </Box>
+
       <VerifyAction
         isOpen={!!markedForDeletion}
-        heading={'Are you sure want to delete this timeline item?'}
-        subheading={`This will also delete all files associated with this item. This action can't be undone!`}
+        heading={'Delete this timeline item?'}
+        subheading={`This will also delete all associated files. This action can't be undone.`}
         onCancel={() => setMarkedForDeletion('')}
         onProceed={handleDeleteTimelineItem}
       />
     </Box>
-  );
+  )
 }
 
 export default TimelineItem;

@@ -3,8 +3,9 @@ import React from "react";
 import App from "@/app/App";
 
 import { ISession } from "@vrobots/user";
-import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
+import { ChakraProvider } from "@chakra-ui/react";
 import SessionProvider from "./session/SessionProvider";
+import system from "@/theme/system";
 
 export interface IAppProviderProps {
   session?: ISession
@@ -23,7 +24,7 @@ const AppProvider: React.FC<IAppProviderProps> = ({ session, children }) => {
   }
 
   return (
-    <ChakraProvider value={defaultSystem}>
+    <ChakraProvider value={system}>
       <SessionProvider session={session}>
         <App>{children}</App>
       </SessionProvider>
