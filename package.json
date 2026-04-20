@@ -14,7 +14,7 @@
     "@chakra-ui/react": "^3.34.0",
     "@emotion/react": "^11.14.0",
     "@tanstack/react-virtual": "^3.13.21",
-    "@vrobots/storybook": "^0.1.73",
+    "@vrobots/storybook": "^0.2.0",
     "axios": "^1.13.6",
     "motion": "^12.34.3",
     "next": "^16.1.7",
