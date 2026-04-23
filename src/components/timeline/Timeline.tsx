@@ -115,8 +115,9 @@ const Timeline = ({ timeline, onRefresh, children = null }: ITimelineProps) => {
     <Suspense fallback={<div>Loading...</div>}>
       <Box
         width={'100%'}
-        bg={{ _light: 'rgba(255, 255, 255, 0.8)', _dark: 'rgba(0, 0, 0, 0.8)' }}
+        bg={{ _light: 'rgba(241, 250, 255, 0.8)', _dark: 'rgba(39, 39, 42, 0.8)' }}
         padding={{ base: 4, md: 8 }}
+        overflowX={'clip'}
       >
         {children}
         <Box
