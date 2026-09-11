@@ -1,5 +1,4 @@
 import { Box } from "@chakra-ui/react"
-import AiSection from "./AiSection"
 import AiResponse from "./AiResponse"
 import useAiStream from "@/hooks/useAiStream"
 import AiPrompt from "./AiPrompt"
@@ -18,6 +17,7 @@ const Ai = () => {
       return
     }
     startStream(prompt)
+    setPrompt("")
   }
 
   React.useEffect(() => {
@@ -28,6 +28,7 @@ const Ai = () => {
     <React.Fragment>
       <Box w={'100%'} maxW={'1100px'} mx={'auto'} px={4} pt={6} pb={36}>
         <AiResponse
+          prompt={prompt}
           response={response}
           fullResponse={fullResponse}
           isStreaming={isStreaming}

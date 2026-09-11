@@ -452,14 +452,17 @@ function CodeTable({
 }
 
 export default function AiResponse({
+  prompt,
   response,
   fullResponse,
   isStreaming,
 }: {
+  prompt: string
   response: string
   fullResponse: IAiStreamResponse | null
   isStreaming: boolean
 }) {
+  const [displayPrompt, setDisplayPrompt] = React.useState<string>('')
   const { colorMode } = useColorMode()
   const isLightMode = colorMode === "light"
 
@@ -470,6 +473,12 @@ export default function AiResponse({
     () => parsed.sections.filter((section) => !/^ICD-10 codes$/i.test(section.title) && !/^CPT codes$/i.test(section.title)),
     [parsed.sections],
   )
+
+  React.useEffect(() => {
+    if (prompt !== displayPrompt && !!prompt) {
+      setDisplayPrompt(prompt)
+    }
+  }, [prompt, displayPrompt])
 
   // Early return for empty state
   if (!response && !isStreaming) {
@@ -529,6 +538,9 @@ export default function AiResponse({
                     </Badge>
                   )
                 }
+                <Heading color={{_light: 'blue.500', _dark: 'blue.300'}} mb={4} mt={4}>
+                  {displayPrompt}
+                </Heading>
                 <Heading
                   size="xl"
                   letterSpacing="-0.03em"
@@ -539,7 +551,7 @@ export default function AiResponse({
               </VStack>
               {fullResponse ? (
                 <HStack gap={2} flexWrap="wrap">
-                  <Badge variant="subtle" colorPalette={'cyan'}>{fullResponse.model}</Badge>
+                  {/* <Badge variant="subtle" colorPalette={'cyan'}>{fullResponse.model}</Badge> */}
                   <Badge variant="subtle" colorPalette={'cyan'}>{fullResponse.device.toUpperCase()}</Badge>
                   <Badge variant="subtle" colorPalette={'cyan'}>{fullResponse.elapsed_ms} ms</Badge>
                 </HStack>
