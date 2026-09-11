@@ -2,11 +2,10 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import { Box, IconButton, Link, Text } from "@chakra-ui/react";
 import { motion } from "motion/react"
-import { ITimelineItem, useColorMode, useHeader, useSidebar } from "@vrobots/storybook";
+import { useColorMode, useHeader, useSidebar } from "@vrobots/storybook";
 import React, { Suspense } from "react";
 import { FaLinkedin } from 'react-icons/fa6'
-import TimelineItem from "@/components/timeline/TimelineItem";
-import Timeline, { useTimeline } from "@/components/timeline/Timeline";
+import Ai from "@/components/ai/Ai";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,7 +18,6 @@ const geistMono = Geist_Mono({
 });
 
 export default function Home() {
-  const { timeline } = useTimeline()
   const [hasMounted, setHasMounted] = React.useState(false)
   const { ref: headerRef } = useHeader()
   const { isOpen } = useSidebar()
@@ -47,7 +45,9 @@ export default function Home() {
           backgroundRepeat: 'no-repeat',
           backgroundSize: 'cover',
           width: '100%',
+          position: 'fixed',
           height: `calc(100vh - ${headerRef.current?.offsetHeight || 0}px)`,
+          overflow: 'auto'
         }}
       >
         <motion.div
@@ -55,7 +55,7 @@ export default function Home() {
           animate={{ opacity: 1 }}
           transition={{ duration: 1, delay: 0.5 }}
           style={{
-            height: `calc(100vh - ${headerRef.current?.offsetHeight || 0}px)`,
+            // height: `calc(100vh - ${headerRef.current?.offsetHeight || 0}px)`,
             width: '100%',
             overflowY: 'scroll',
           }}
@@ -69,7 +69,7 @@ export default function Home() {
                 <IconButton
                   aria-label="LinkedIn"
                   position="absolute"
-                  top={4 + (headerRef.current?.offsetHeight || 0)}
+                  top={4}
                   right={4}
                   colorScheme="blue"
                   size="xs"
@@ -88,29 +88,8 @@ export default function Home() {
             width={'100%'}
             height={'100%'}
           >
-            <Text
-              fontSize={{ base: '4xl', md: '6xl' }}
-              fontWeight={'bold'}
-              color={'white'}
-              className={geistSans.variable}
-              fontFamily={'var(--font-geist-sans)'}
-              textShadow={'4px 4px 20px black'}
-              mt={`-${headerRef.current?.offsetHeight || 0}px`}
-            >
-              Bryan Ricci
-            </Text>
-            <Text
-              fontSize={{ base: '2xl', md: '3xl' }}
-              color={'whiteAlpha.800'}
-              className={geistMono.variable}
-              fontFamily={'var(--font-geist-mono)'}
-              textShadow={'4px 4px 20px black'}
-            >
-              Software Engineer
-            </Text>
+            <Ai />
           </Box>
-          
-          <Timeline timeline={timeline} />
         </motion.div>
       </motion.div>
     </Suspense>
