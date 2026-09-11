@@ -53,28 +53,12 @@ const SecondFactorPage = () => {
   }
 
   return (
-    <Page>
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        height={`calc(100vh - ${(headerRef.current?.offsetHeight || 0) * 2}px)`}
-        bg="neu.bg"
-        px={4}
-      >
-        <Box
-          layerStyle="neuRaised"
-          p={{ base: 6, md: 8 }}
-          minW={{ base: "100%", sm: "460px" }}
-          maxW="560px"
-        >
-          <Form.SecondFactorAuth
-            onSecondFactorAuth={handle2FactorAuth}
-            onResendAuthCode={handleResendCode}
-          />
-        </Box>
-      </Box>
-    </Page>
+    <Page.Flex>
+      <Form.SecondFactorAuth
+        onSecondFactorAuth={handle2FactorAuth}
+        onResendAuthCode={handleResendCode}
+      />
+    </Page.Flex>
   )
 }
 
