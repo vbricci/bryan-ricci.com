@@ -54,32 +54,8 @@ export default function Home() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1, delay: 0.5 }}
-          style={{
-            // height: `calc(100vh - ${headerRef.current?.offsetHeight || 0}px)`,
-            width: '100%',
-            overflowY: 'scroll',
-          }}
+
         >
-          {
-            !isOpen && (
-              <Link
-                href={'https://www.linkedin.com/in/bryan-ricci-180803152/'}
-                target="_blank"
-              >
-                <IconButton
-                  aria-label="LinkedIn"
-                  position="absolute"
-                  top={4}
-                  right={4}
-                  colorScheme="blue"
-                  size="xs"
-                  opacity={.8}
-                >
-                  <FaLinkedin />
-                </IconButton>
-              </Link>
-            )
-          }
           <Box
             display={'flex'}
             flexDirection={'column'}
