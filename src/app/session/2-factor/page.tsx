@@ -49,7 +49,29 @@ const SecondFactorPage = () => {
 
   const handleResendCode = async () => {
     // Handle logic to resend the 2-factor authentication code, such as making an API call to trigger the email
-    console.log("Resend 2-Factor Auth Code")
+    try {
+      const response = await axios({
+        url: `/api/v1/user/${userId}/session/login/second-factor/resend`,
+        method: 'POST',
+      })
+      toaster.create({
+        title: "We resent the code",
+        description: response.data,
+        type: "success",
+        closable: true,
+        duration: 5000,
+      })
+    }
+    catch (err) {
+      const error = err as AxiosError
+      toaster.create({
+        title: "Error",
+        description: error.response?.data || error.message,
+        type: "error",
+        closable: true,
+        duration: 5000,
+      })
+    }
   }
 
   return (

@@ -16,7 +16,23 @@ export const MenuHeaderUnauthenticatedMobile = () => {
 export const MenuHeaderUnauthenticatedDesktop = () => {
   const { colorMode } = useColorMode()
   return (
-    <HStack gap={20}>
+    <HStack gap={12}>
+      <Link
+        as={NextLink}
+        href="/"
+        style={{ textDecoration: 'none' }}
+        colorPalette={'cyan'}
+        >
+        Home
+      </Link>
+      <Link
+        as={NextLink}
+        href="/timeline"
+        style={{ textDecoration: 'none' }}
+        colorPalette={'cyan'}
+        >
+        Timeline
+      </Link>
       <Link
         as={NextLink}
         href="/login"

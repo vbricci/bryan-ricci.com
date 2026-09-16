@@ -46,5 +46,11 @@
     "typescript": "^5",
     "vite": "^7.3.1",
     "vitest": "^4.0.18"
+  },
+  "allowScripts": {
+    "fastify-socket@5.1.4": true,
+    "unrs-resolver@1.11.1": true,
+    "fsevents@2.3.3": true,
+    "esbuild@0.27.2": true
   }
 }

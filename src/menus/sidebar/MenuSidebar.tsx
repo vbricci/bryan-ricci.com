@@ -20,6 +20,8 @@ export const MenuSidebarUnauthenticatedMobile = () => {
     <Box>
       <Menu
         menuItems={[
+          { label: 'Home', value: '/' },
+          { label: 'Timeline', value: '/timeline' },
           { label: 'Login', value: '/login' },
         ]}
         onClick={handleMenuClick}
